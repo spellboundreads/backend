@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAuthorsDto } from './dto/create-authors.dto';
 import { UpdateAuthorsDto } from './dto/update-authors.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -9,31 +13,59 @@ export class AuthorsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createAuthorsDto: CreateAuthorsDto) {
-    return this.prisma.authors.create({
-      data: createAuthorsDto,
-    });
+    try {
+      return await this.prisma.authors.create({ data: createAuthorsDto });
+    } catch (e) {
+      if (e.code === 'P2002') {
+        throw new ConflictException('Author already exists');
+      }
+      throw e;
+    }
   }
 
   async findAll() {
-    return this.prisma.authors.findMany();
+    return await this.prisma.authors.findMany();
   }
 
   async findOne(id: string) {
-    return this.prisma.authors.findUnique({
+    const author = await this.prisma.authors.findUnique({
       where: { id },
     });
+
+    if (!author) {
+      throw new NotFoundException(`Author with id ${id} not found`);
+    }
+
+    return author;
   }
 
   async update(id: string, updateAuthorsDto: UpdateAuthorsDto) {
-    return this.prisma.authors.update({
-      where: { id },
-      data: updateAuthorsDto,
-    });
+    try {
+      return await this.prisma.authors.update({
+        where: { id },
+        data: updateAuthorsDto,
+      });
+    } catch (e) {
+      if (e.code === 'P2002') {
+        throw new ConflictException('Unique constraint failed on update');
+      }
+      if (e.code === 'P2025') {
+        throw new NotFoundException(`Author with id ${id} not found`);
+      }
+      throw e;
+    }
   }
 
-  remove(id: string): Promise<Author> {
-    return this.prisma.authors.delete({
-      where: { id },
-    });
+  async remove(id: string): Promise<Author> {
+    try {
+      return await this.prisma.authors.delete({
+        where: { id },
+      });
+    } catch (e) {
+      if (e?.code === 'P2025') {
+        throw new NotFoundException(`Author with id ${id} not found`);
+      }
+      throw e;
+    }
   }
 }
