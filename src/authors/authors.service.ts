@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateAuthorsDto } from './dto/create-authors.dto';
 import { UpdateAuthorsDto } from './dto/update-authors.dto';
 import { PrismaService } from 'src/prisma.service';
+import { authors as Author } from '@prisma/client';
 
 @Injectable()
 export class AuthorsService {
@@ -30,7 +31,7 @@ export class AuthorsService {
     });
   }
 
-  remove(id: string) {
+  remove(id: string): Promise<Author> {
     return this.prisma.authors.delete({
       where: { id },
     });
