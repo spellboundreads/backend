@@ -8,7 +8,7 @@ datasource db {
 }
 
 model authors {
-  id             String          @id @db.Uuid
+  id             String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   openlibrary_id String          @unique @db.VarChar
   full_name      String          @db.VarChar
   date_of_birth  DateTime?       @db.Date
@@ -40,7 +40,7 @@ model review_likes {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model reviews {
-  id           String         @id @db.Uuid
+  id           String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   user_id      String         @db.Uuid
   work_id      String         @db.Uuid
   rating       Int            @db.SmallInt
