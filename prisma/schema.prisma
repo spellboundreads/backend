@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model authors {
+  id             String          @id @db.Uuid
+  openlibrary_id String          @unique @db.VarChar
+  full_name      String          @db.VarChar
+  date_of_birth  DateTime?       @db.Date
+  bio            String?
+  portrait_url   String?
+  works_authors  works_authors[]
+}
+
+model follows {
+  follower_id                       String    @db.Uuid
+  following_id                      String    @db.Uuid
+  created_at                        DateTime? @default(now()) @db.Timestamp(6)
+  users_follows_follower_idTousers  users     @relation("follows_follower_idTousers", fields: [follower_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_follows_following_idTousers users     @relation("follows_following_idTousers", fields: [following_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([follower_id, following_id])
+  @@index([follower_id], map: "idx_follows_follower_id")
+}
+
+model review_likes {
+  user_id    String    @db.Uuid
+  review_id  String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  reviews    reviews   @relation(fields: [review_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, review_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model reviews {
+  id           String         @id @db.Uuid
+  user_id      String         @db.Uuid
+  work_id      String         @db.Uuid
+  rating       Int            @db.SmallInt
+  review_text  String?
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
+  updated_at   DateTime?      @db.Timestamp(6)
+  review_likes review_likes[]
+  users        users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  works        works          @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([work_id], map: "idx_reviews_work_id")
+}
+
+model shelves {
+  id            String          @id @db.Uuid
+  name          String          @db.VarChar
+  description   String?
+  is_public     Boolean?        @default(false)
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?       @db.Timestamp(6)
+  users_shelves users_shelves[]
+  works_shelves works_shelves[]
+}
+
+model users {
+  id                                  String          @id @db.Uuid
+  password_hash                       String
+  bio                                 String?
+  avatar_url                          String?
+  username                            String          @unique @db.VarChar
+  email                               String          @unique @db.VarChar
+  display_name                        String?         @db.VarChar
+  role                                user_role       @default(member)
+  date_of_birth                       DateTime?       @db.Date
+  created_at                          DateTime?       @default(now()) @db.Timestamp(6)
+  deleted_at                          DateTime?       @db.Timestamp(6)
+  follows_follows_follower_idTousers  follows[]       @relation("follows_follower_idTousers")
+  follows_follows_following_idTousers follows[]       @relation("follows_following_idTousers")
+  review_likes                        review_likes[]
+  reviews                             reviews[]
+  users_shelves                       users_shelves[]
+}
+
+model users_shelves {
+  shelf_id String      @db.Uuid
+  user_id  String      @db.Uuid
+  role     shelf_role? @default(collaborator)
+  added_at DateTime?   @default(now()) @db.Timestamp(6)
+  shelves  shelves     @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users    users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([shelf_id, user_id])
+}
+
+model works {
+  id                 String          @id @db.Uuid
+  openlibrary_id     String          @unique @db.VarChar
+  title              String
+  first_publish_year Int?
+  cover_url          String?
+  published_year     Int?
+  last_synced        DateTime?       @db.Timestamp(6)
+  reviews            reviews[]
+  works_authors      works_authors[]
+  works_shelves      works_shelves[]
+}
+
+model works_authors {
+  work_id   String  @db.Uuid
+  author_id String  @db.Uuid
+  authors   authors @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  works     works   @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([work_id, author_id])
+  @@index([author_id], map: "idx_works_authors_author_id")
+}
+
+model works_shelves {
+  shelf_id String    @db.Uuid
+  work_id  String    @db.Uuid
+  added_at DateTime? @default(now()) @db.Timestamp(6)
+  shelves  shelves   @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  works    works     @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([shelf_id, work_id])
+  @@index([shelf_id], map: "idx_works_shelves_shelf_id")
+}
+
+enum shelf_role {
+  owner
+  collaborator
+  viewer
+}
+
+enum user_role {
+  admin
+  moderator
+  member
+}
