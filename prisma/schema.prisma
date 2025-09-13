@@ -66,7 +66,7 @@ model shelves {
 }
 
 model users {
-  id                                  String          @id @db.Uuid
+  id                                  String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   password_hash                       String
   bio                                 String?
   avatar_url                          String?
