@@ -17,7 +17,7 @@ model authors {
   death_date     DateTime?       @db.Date
   photos         String[]
   created_at     DateTime?       @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime?       @updatedAt
+  updated_at     DateTime?       @default(now()) @updatedAt @db.Timestamptz(6)
   works_authors  works_authors[]
 }
 
@@ -25,7 +25,7 @@ model follows {
   follower_id                       String    @db.Uuid
   following_id                      String    @db.Uuid
   created_at                        DateTime? @default(now()) @db.Timestamp(6)
-  updated_at                        DateTime? @updatedAt
+  updated_at                        DateTime? @default(now()) @updatedAt @db.Timestamptz(6)
   users_follows_follower_idTousers  users     @relation("follows_follower_idTousers", fields: [follower_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users_follows_following_idTousers users     @relation("follows_following_idTousers", fields: [following_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -37,7 +37,7 @@ model review_likes {
   user_id    String    @db.Uuid
   review_id  String    @db.Uuid
   created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_at DateTime? @updatedAt
+  updated_at DateTime? @default(now()) @updatedAt @db.Timestamptz(6)
   reviews    reviews   @relation(fields: [review_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -52,7 +52,7 @@ model reviews {
   rating       Int            @db.SmallInt
   review_text  String?
   created_at   DateTime?      @default(now()) @db.Timestamp(6)
-  updated_at   DateTime?      @updatedAt
+  updated_at   DateTime?      @updatedAt @db.Timestamp(6)
   review_likes review_likes[]
   users        users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   works        works          @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -66,7 +66,7 @@ model shelves {
   description   String?
   is_public     Boolean?        @default(false)
   created_at    DateTime?       @default(now()) @db.Timestamp(6)
-  updated_at    DateTime?       @updatedAt
+  updated_at    DateTime?       @updatedAt @db.Timestamp(6)
   users_shelves users_shelves[]
   works_shelves works_shelves[]
 }
@@ -83,7 +83,7 @@ model users {
   date_of_birth                       DateTime?       @db.Date
   created_at                          DateTime?       @default(now()) @db.Timestamp(6)
   deleted_at                          DateTime?       @db.Timestamp(6)
-  updated_at                          DateTime?       @updatedAt
+  updated_at                          DateTime?       @default(now()) @updatedAt @db.Timestamptz(6)
   follows_follows_follower_idTousers  follows[]       @relation("follows_follower_idTousers")
   follows_follows_following_idTousers follows[]       @relation("follows_following_idTousers")
   review_likes                        review_likes[]
@@ -97,7 +97,7 @@ model users_shelves {
   role       shelf_role? @default(collaborator)
   added_at   DateTime?   @default(now()) @db.Timestamp(6)
   created_at DateTime?   @default(now()) @db.Timestamptz(6)
-  updated_at DateTime?   @updatedAt
+  updated_at DateTime?   @default(now()) @updatedAt @db.Timestamptz(6)
   shelves    shelves     @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users      users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -105,17 +105,16 @@ model users_shelves {
 }
 
 model works {
-  id                 String          @id @db.Uuid
+  id                 String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   openlibrary_id     String          @unique @db.VarChar
   title              String
-  first_publish_year Int?
-  cover_url          String?
-  published_year     Int?
-  last_synced        DateTime?       @db.Timestamp(6)
+  first_publish_date Int?
+  covers             String[]
   description        String?
   excerpts           String[]
   created_at         DateTime        @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?       @updatedAt
+  updated_at         DateTime?       @default(now()) @updatedAt @db.Timestamptz(6)
+  subjects           String[]        @db.VarChar
   reviews            reviews[]
   works_authors      works_authors[]
   works_shelves      works_shelves[]
@@ -125,7 +124,7 @@ model works_authors {
   work_id    String    @db.Uuid
   author_id  String    @db.Uuid
   created_at DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @updatedAt
+  updated_at DateTime? @default(now()) @updatedAt @db.Timestamptz(6)
   authors    authors   @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   works      works     @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -138,7 +137,7 @@ model works_shelves {
   work_id    String    @db.Uuid
   added_at   DateTime? @default(now()) @db.Timestamp(6)
   created_at DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at DateTime? @updatedAt
+  updated_at DateTime? @default(now()) @updatedAt @db.Timestamptz(6)
   shelves    shelves   @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   works      works     @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
