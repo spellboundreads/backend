@@ -1,8 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Get, Injectable, UnauthorizedException } from '@nestjs/common';
 import { RegisterDto, LoginDto } from './dto/create-auth.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-// import { UpdateAuthDto } from './dto/update-auth.dto';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
@@ -15,38 +14,30 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const hashRound = 10;
     const hashedPassword = await bcrypt.hash(dto.password, hashRound);
-    try {
-      const {password, ...userData} = dto;
-      const user = await this.prisma.users.create({
-        data: { ...userData, password_hash: hashedPassword },
-      });
-      return this.generateToken(user.id);
-    } catch (e) {
-      throw e;
-    }
+    const { password, ...userData } = dto;
+    const user = await this.prisma.users.create({
+      data: { ...userData, password_hash: hashedPassword },
+    });
+    return this.generateToken(user.id);
   }
 
   async login(dto: LoginDto) {
-    try {
-      const user = await this.prisma.users.findUnique({
-        where: { email: dto.email },
-      });
+    const user = await this.prisma.users.findUnique({
+      where: { email: dto.email },
+    });
 
-      if (!user)
-        throw new UnauthorizedException('No users associated with this email');
+    if (!user)
+      throw new UnauthorizedException('No users associated with this email');
 
-      const isMatch = await bcrypt.compare(dto.password, user.password_hash);
-      if (!isMatch) throw new UnauthorizedException('Wrong password');
- 
-      return this.generateToken(user.id);
-    } catch (e) {
-      throw e;
-    }
+    const isMatch = await bcrypt.compare(dto.password, user.password_hash);
+    if (!isMatch) throw new UnauthorizedException('Wrong password');
+
+    return this.generateToken(user.id);
   }
 
   async generateToken(userId: string) {
     return {
-      access_token: this.jwtService.sign({ userId }),
+      access_token: this.jwtService.sign({ id: userId }, { expiresIn: '24h' }),
     };
   }
 }
