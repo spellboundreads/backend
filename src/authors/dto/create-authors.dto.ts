@@ -1,15 +1,26 @@
-import { IsString, IsOptional, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsDateString,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateAuthorsDto {
+  @IsNotEmpty()
   @IsString()
   openlibrary_id: string;
 
+  @IsNotEmpty()
   @IsString()
-  full_name: string;
+  name: string;
 
   @IsOptional()
   @IsDateString()
-  date_of_birth?: string;
+  birth_date?: string;
+
+  @IsOptional()
+  @IsDateString()
+  death_date?: string;
 
   @IsOptional()
   @IsString()
@@ -18,4 +29,8 @@ export class CreateAuthorsDto {
   @IsOptional()
   @IsString()
   portrait_url?: string;
+
+  @IsOptional()
+  @IsString({ each: true })
+  photos?: string[];
 }
