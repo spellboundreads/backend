@@ -10,10 +10,14 @@ datasource db {
 model authors {
   id             String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   openlibrary_id String          @unique @db.VarChar
-  full_name      String          @db.VarChar
-  date_of_birth  DateTime?       @db.Date
+  name           String          @db.VarChar
+  birth_date     DateTime?       @db.Date
   bio            String?
   portrait_url   String?
+  death_date     DateTime?       @db.Date
+  photos         String[]
+  created_at     DateTime?       @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?       @updatedAt
   works_authors  works_authors[]
 }
 
@@ -21,6 +25,7 @@ model follows {
   follower_id                       String    @db.Uuid
   following_id                      String    @db.Uuid
   created_at                        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                        DateTime? @updatedAt
   users_follows_follower_idTousers  users     @relation("follows_follower_idTousers", fields: [follower_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users_follows_following_idTousers users     @relation("follows_following_idTousers", fields: [following_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -32,6 +37,7 @@ model review_likes {
   user_id    String    @db.Uuid
   review_id  String    @db.Uuid
   created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @updatedAt
   reviews    reviews   @relation(fields: [review_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -46,7 +52,7 @@ model reviews {
   rating       Int            @db.SmallInt
   review_text  String?
   created_at   DateTime?      @default(now()) @db.Timestamp(6)
-  updated_at   DateTime?      @db.Timestamp(6)
+  updated_at   DateTime?      @updatedAt
   review_likes review_likes[]
   users        users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   works        works          @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -60,7 +66,7 @@ model shelves {
   description   String?
   is_public     Boolean?        @default(false)
   created_at    DateTime?       @default(now()) @db.Timestamp(6)
-  updated_at    DateTime?       @db.Timestamp(6)
+  updated_at    DateTime?       @updatedAt
   users_shelves users_shelves[]
   works_shelves works_shelves[]
 }
@@ -77,6 +83,7 @@ model users {
   date_of_birth                       DateTime?       @db.Date
   created_at                          DateTime?       @default(now()) @db.Timestamp(6)
   deleted_at                          DateTime?       @db.Timestamp(6)
+  updated_at                          DateTime?       @updatedAt
   follows_follows_follower_idTousers  follows[]       @relation("follows_follower_idTousers")
   follows_follows_following_idTousers follows[]       @relation("follows_following_idTousers")
   review_likes                        review_likes[]
@@ -85,12 +92,14 @@ model users {
 }
 
 model users_shelves {
-  shelf_id String      @db.Uuid
-  user_id  String      @db.Uuid
-  role     shelf_role? @default(collaborator)
-  added_at DateTime?   @default(now()) @db.Timestamp(6)
-  shelves  shelves     @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users    users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  shelf_id   String      @db.Uuid
+  user_id    String      @db.Uuid
+  role       shelf_role? @default(collaborator)
+  added_at   DateTime?   @default(now()) @db.Timestamp(6)
+  created_at DateTime?   @default(now()) @db.Timestamptz(6)
+  updated_at DateTime?   @updatedAt
+  shelves    shelves     @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([shelf_id, user_id])
 }
@@ -103,27 +112,35 @@ model works {
   cover_url          String?
   published_year     Int?
   last_synced        DateTime?       @db.Timestamp(6)
+  description        String?
+  excerpts           String[]
+  created_at         DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?       @updatedAt
   reviews            reviews[]
   works_authors      works_authors[]
   works_shelves      works_shelves[]
 }
 
 model works_authors {
-  work_id   String  @db.Uuid
-  author_id String  @db.Uuid
-  authors   authors @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  works     works   @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  work_id    String    @db.Uuid
+  author_id  String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt
+  authors    authors   @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  works      works     @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([work_id, author_id])
   @@index([author_id], map: "idx_works_authors_author_id")
 }
 
 model works_shelves {
-  shelf_id String    @db.Uuid
-  work_id  String    @db.Uuid
-  added_at DateTime? @default(now()) @db.Timestamp(6)
-  shelves  shelves   @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  works    works     @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  shelf_id   String    @db.Uuid
+  work_id    String    @db.Uuid
+  added_at   DateTime? @default(now()) @db.Timestamp(6)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt
+  shelves    shelves   @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  works      works     @relation(fields: [work_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([shelf_id, work_id])
   @@index([shelf_id], map: "idx_works_shelves_shelf_id")
