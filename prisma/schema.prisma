@@ -108,7 +108,7 @@ model works {
   id                 String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   openlibrary_id     String          @unique @db.VarChar
   title              String
-  first_publish_date Int?
+  first_publish_date DateTime?       @db.Date
   covers             String[]
   description        String?
   excerpts           String[]
