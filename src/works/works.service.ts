@@ -45,11 +45,7 @@ export class WorksService {
     }
 
     const openbookClient = new OpenLibraryClient('spellbound');
-    console.log(filters);
     const works = await openbookClient.search(searchFilters);
-
-    console.log('WorksService.findAll filters:', filters);
-    // console.log(works);
     return works;
   }
 
@@ -98,7 +94,6 @@ export class WorksService {
       const authorIds: string[] = [];
 
       if (work.authors && work.authors.length > 0) {
-        console.log(work.authors);
         const parseDate = (dateString?: string): Date | undefined => {
           if (!dateString) return undefined;
           const parsed = new Date(dateString);
