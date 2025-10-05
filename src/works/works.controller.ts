@@ -1,30 +1,39 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { WorksService } from './works.service';
-import { CreateWorkDto } from './dto/create-work.dto';
-import { UpdateWorkDto } from './dto/update-work.dto';
 
 @Controller('works')
 export class WorksController {
   constructor(private readonly worksService: WorksService) {}
 
-  @Post()
-  create(@Body() createWorkDto: CreateWorkDto) {
-    return this.worksService.create(createWorkDto);
-  }
-
   @Get()
-  findAll() {
-    return this.worksService.findAll();
+  findAll(@Req() req) {
+    const filters: {
+      title?: string;
+      language?: string;
+      limit?: number;
+      page?: number;
+    } = req.query;
+
+    return this.worksService.findAll(filters);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.worksService.findOne(id);
+  @Get(':olid')
+  findOne(@Param('olid') olid: string) {
+    return this.worksService.findOne(olid);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWorkDto: UpdateWorkDto) {
-    return this.worksService.update(+id, updateWorkDto);
+  @Post()
+  create(@Body() createWorkDto) {
+    return this.worksService.create(createWorkDto);
   }
 
   @Delete(':id')
