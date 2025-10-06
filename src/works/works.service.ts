@@ -19,7 +19,13 @@ export class WorksService {
       !filters.limit &&
       !filters.page
     ) {
-      return await this.prisma.works.findMany();
+      return await this.prisma.works.findMany({
+        take: 10,
+        skip: 0,
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
     }
 
     const { title, language, limit, page } = filters;
@@ -101,8 +107,8 @@ export class WorksService {
         };
 
         for (const authorRef of work.authors) {
-          const authorKey = authorRef.author.key; 
-          const authorId = authorKey.split('/').pop(); 
+          const authorKey = authorRef.author.key;
+          const authorId = authorKey.split('/').pop();
 
           if (authorId) {
             let author = await this.prisma.authors.findUnique({
@@ -151,7 +157,14 @@ export class WorksService {
     return await this.prisma.works.create({ data });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} work`;
+  async update(id: string, data: Partial<CreateWorkDto>) {
+    return await this.prisma.works.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async remove(id: string) {
+    return await this.prisma.works.delete({ where: { id } });
   }
 }
