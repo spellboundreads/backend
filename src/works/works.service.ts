@@ -58,6 +58,13 @@ export class WorksService {
   async findOne(openlibrary_id: string) {
     const existingWork = await this.prisma.works.findUnique({
       where: { openlibrary_id },
+      include: {
+        works_authors: {
+          include: {
+            authors: true,
+          },
+        },
+      },
     });
 
     if (existingWork) {
@@ -128,6 +135,9 @@ export class WorksService {
                       typeof authorDetails.bio === 'string'
                         ? authorDetails.bio
                         : authorDetails.bio?.value,
+                    photos:
+                      authorDetails.photos?.map((photo) => photo.toString()) ||
+                      [],
                   },
                 });
               }
@@ -149,7 +159,16 @@ export class WorksService {
         }
       }
 
-      return newWork;
+      return await this.prisma.works.findUnique({
+        where: { openlibrary_id },
+        include: {
+          works_authors: {
+            include: {
+              authors: true,
+            },
+          },
+        },
+      });
     }
   }
 
