@@ -1,21 +1,30 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { JSendExceptionFilter } from './common/filters/jsend-exception.filter';
-import { JSendInterceptor } from './common/interceptors/jsend.interceptor';
+import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // app.useGlobalInterceptors(new JsonApiInterceptor());
-  app.useGlobalInterceptors(new JSendInterceptor());
-  app.useGlobalFilters(new JSendExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
     }),
   );
+
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
+  const config = new DocumentBuilder()
+    .setTitle('spellbound')
+    .setDescription('A platform for discovering and sharing literary works')
+    .setVersion('0.1')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
   app.enableCors({
     origin: `http://localhost:4000`,
