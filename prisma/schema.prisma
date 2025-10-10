@@ -68,41 +68,29 @@ model shelves {
   is_public     Boolean?        @default(false)
   created_at    DateTime?       @default(now()) @db.Timestamp(6)
   updated_at    DateTime?       @updatedAt @db.Timestamp(6)
-  users_shelves users_shelves[]
+  user_id       String?         @db.Uuid
+  users         users?          @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_shelf_user")
   works_shelves works_shelves[]
 }
 
 model users {
-  id                                  String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                                  String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   password_hash                       String
   bio                                 String?
   avatar_url                          String?
-  username                            String          @unique @db.VarChar
-  email                               String          @unique @db.VarChar
-  display_name                        String?         @db.VarChar
-  role                                user_role       @default(member)
-  date_of_birth                       DateTime?       @db.Date
-  created_at                          DateTime?       @default(now()) @db.Timestamp(6)
-  deleted_at                          DateTime?       @db.Timestamp(6)
-  updated_at                          DateTime?       @default(now()) @updatedAt @db.Timestamptz(6)
-  follows_follows_follower_idTousers  follows[]       @relation("follows_follower_idTousers")
-  follows_follows_following_idTousers follows[]       @relation("follows_following_idTousers")
+  username                            String         @unique @db.VarChar
+  email                               String         @unique @db.VarChar
+  display_name                        String?        @db.VarChar
+  role                                user_role      @default(member)
+  date_of_birth                       DateTime?      @db.Date
+  created_at                          DateTime?      @default(now()) @db.Timestamp(6)
+  deleted_at                          DateTime?      @db.Timestamp(6)
+  updated_at                          DateTime?      @default(now()) @updatedAt @db.Timestamptz(6)
+  follows_follows_follower_idTousers  follows[]      @relation("follows_follower_idTousers")
+  follows_follows_following_idTousers follows[]      @relation("follows_following_idTousers")
   review_likes                        review_likes[]
   reviews                             reviews[]
-  users_shelves                       users_shelves[]
-}
-
-model users_shelves {
-  shelf_id   String      @db.Uuid
-  user_id    String      @db.Uuid
-  role       shelf_role? @default(collaborator)
-  added_at   DateTime?   @default(now()) @db.Timestamp(6)
-  created_at DateTime?   @default(now()) @db.Timestamptz(6)
-  updated_at DateTime?   @default(now()) @updatedAt @db.Timestamptz(6)
-  shelves    shelves     @relation(fields: [shelf_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users      users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@id([shelf_id, user_id])
+  shelves                             shelves[]
 }
 
 model works {
