@@ -8,6 +8,7 @@ import { PrismaModule } from './prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { WorksModule } from './works/works.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { ShelvesModule } from './shelves/shelves.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ReviewsModule } from './reviews/reviews.module';
     AuthModule,
     WorksModule,
     ReviewsModule,
+    ShelvesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
