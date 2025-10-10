@@ -1,7 +1,6 @@
-import { PickType } from '@nestjs/mapped-types';
+import { PartialType, PickType } from '@nestjs/swagger';
 import { CreateReviewDto } from './create-review.dto';
 
-export class UpdateReviewDto extends PickType(CreateReviewDto, [
-  'review_text',
-  'rating',
-]) {}
+export class UpdateReviewDto extends PartialType(
+  PickType(CreateReviewDto, ['rating', 'review_text'] as const),
+) {}

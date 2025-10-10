@@ -6,37 +6,56 @@ import {
   Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
-
+import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
+import { ReviewEntity } from './entities/review.entity';
+@ApiTags('reviews')
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Post()
-  create(@Body() createReviewDto: CreateReviewDto) {
-    return this.reviewsService.create(createReviewDto);
+  @ApiCreatedResponse({ type: ReviewEntity })
+  async create(@Body() createReviewDto: CreateReviewDto) {
+    return new ReviewEntity(await this.reviewsService.create(createReviewDto));
   }
 
   @Get()
-  findAll() {
-    return this.reviewsService.findAll();
+  @ApiOkResponse({ type: ReviewEntity, isArray: true })
+  async findAll() {
+    const reviews = await this.reviewsService.findAll();
+    return reviews.map((review) => new ReviewEntity(review));
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.reviewsService.findOne(id);
+  @ApiOkResponse({ type: ReviewEntity })
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    const review = await this.reviewsService.findOne(id);
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    return new ReviewEntity(review);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-    return this.reviewsService.update(id, updateReviewDto);
+  @ApiOkResponse({ type: ReviewEntity })
+  async update(
+    @Param('id') id: string,
+    @Body() updateReviewDto: UpdateReviewDto,
+  ) {
+    return new ReviewEntity(
+      await this.reviewsService.update(id, updateReviewDto),
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reviewsService.remove(id);
+  @ApiOkResponse({ type: ReviewEntity })
+  async remove(@Param('id') id: string) {
+    return await this.reviewsService.remove(id);
   }
 }

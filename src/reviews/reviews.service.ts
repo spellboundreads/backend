@@ -6,13 +6,14 @@ import { PrismaService } from 'src/prisma.service';
 @Injectable()
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
-  create(createReviewDto: CreateReviewDto) {
+
+  async create(createReviewDto: CreateReviewDto) {
     return this.prisma.reviews.create({
       data: createReviewDto,
     });
   }
 
-  findAll() {
+  async findAll() {
     return this.prisma.reviews.findMany({
       include: {
         users: true,
@@ -25,6 +26,7 @@ export class ReviewsService {
       where: { id },
       include: {
         users: true,
+        works: true,
       },
     });
   }
