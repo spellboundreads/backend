@@ -62,15 +62,17 @@ model reviews {
 }
 
 model shelves {
-  id            String          @id @db.Uuid
+  id            String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name          String          @db.VarChar
   description   String?
   is_public     Boolean?        @default(false)
   created_at    DateTime?       @default(now()) @db.Timestamp(6)
   updated_at    DateTime?       @updatedAt @db.Timestamp(6)
-  user_id       String?         @db.Uuid
-  users         users?          @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_shelf_user")
+  user_id       String          @db.Uuid
+  users         users           @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_shelf_user")
   works_shelves works_shelves[]
+
+  @@unique([user_id, name], map: "user_name_unique")
 }
 
 model users {
