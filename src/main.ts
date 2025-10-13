@@ -18,6 +18,7 @@ async function bootstrap() {
     .setTitle('spellbound')
     .setDescription('A platform for discovering and sharing literary works')
     .setVersion('0.1')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
