@@ -26,6 +26,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
 export const roundsOfHashing = 10;
+export interface AuthenticatedRequest extends Request {
+  user: UserEntity;
+}
+
 @Controller('users')
 @ApiTags('users')
 export class UsersController {
@@ -33,7 +37,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getMe(@Req() req) {
+  async getMe(@Req() req: AuthenticatedRequest) {
     if (!req.user) {
       throw new UnauthorizedException();
     }
