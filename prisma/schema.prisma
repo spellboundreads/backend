@@ -77,7 +77,7 @@ model shelves {
 
 model users {
   id                                  String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  password_hash                       String
+  password                            String
   bio                                 String?
   avatar_url                          String?
   username                            String         @unique @db.VarChar
@@ -134,12 +134,6 @@ model works_shelves {
 
   @@id([shelf_id, work_id])
   @@index([shelf_id], map: "idx_works_shelves_shelf_id")
-}
-
-enum shelf_role {
-  owner
-  collaborator
-  viewer
 }
 
 enum user_role {
