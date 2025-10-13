@@ -172,18 +172,18 @@ export class WorksService {
     }
   }
 
-  async create(data: CreateWorkDto) {
-    return await this.prisma.works.create({ data });
+  create(data: CreateWorkDto) {
+    return this.prisma.works.create({ data });
   }
 
-  async update(id: string, data: Partial<CreateWorkDto>) {
-    return await this.prisma.works.update({
+  update(id: string, data: Partial<CreateWorkDto>) {
+    return this.prisma.works.update({
       where: { id },
       data,
     });
   }
 
-  async remove(id: string) {
-    return await this.prisma.works.delete({ where: { id } });
+  remove(id: string) {
+    return this.prisma.works.delete({ where: { id } });
   }
 }

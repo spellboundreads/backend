@@ -19,26 +19,26 @@ export class CreateAuthorsDto {
 
   @IsOptional()
   @IsDateString()
-  @ApiProperty()
+  @ApiProperty({ required: false })
   birth_date?: Date;
 
   @IsOptional()
   @IsDateString()
-  @ApiProperty()
+  @ApiProperty({ required: false })
   death_date?: Date;
 
   @IsOptional()
   @IsString()
-  @ApiProperty()
+  @ApiProperty({ required: false })
   bio?: string;
 
   @IsOptional()
   @IsString()
-  @ApiProperty()
+  @ApiProperty({ required: false })
   portrait_url?: string;
 
   @IsOptional()
   @IsString({ each: true })
-  @ApiProperty()
+  @ApiProperty({ required: false })
   photos?: string[];
 }
