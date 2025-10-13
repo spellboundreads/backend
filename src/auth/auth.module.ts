@@ -7,7 +7,7 @@ import { PrismaModule } from 'src/prisma.module';
 import { UsersModule } from 'src/users/users.module';
 import { JwtStrategy } from './jwt.strategy';
 
-export const jwtSecret = 'zjP9h6ZI5LoSKCRj';
+export const jwtSecret = process.env.JWT_SECRET || 'secret';
 
 @Module({
   imports: [

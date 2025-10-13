@@ -1,5 +1,6 @@
 import {
   Controller,
+  Req,
   Get,
   Post,
   Body,
@@ -9,6 +10,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -28,6 +30,22 @@ export const roundsOfHashing = 10;
 @ApiTags('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@Req() req) {
+    if (!req.user) {
+      throw new UnauthorizedException();
+    }
+
+    const user = await this.usersService.findOne(req.user.id);
+
+    if (!user) {
+      throw new NotFoundException(`No user found`);
+    }
+
+    return new UserEntity(user);
+  }
 
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
