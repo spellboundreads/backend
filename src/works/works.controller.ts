@@ -1,13 +1,13 @@
 import {
   Controller,
   Get,
-  Req,
   Post,
   Body,
   Patch,
   Param,
   Delete,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { WorksService } from './works.service';
 import { CreateWorkDto } from './dto/create-work.dto';
@@ -19,16 +19,15 @@ import { WorkEntity } from './entities/work.entity';
 @Controller('works')
 export class WorksController {
   constructor(private readonly worksService: WorksService) {}
-
   @Get()
   @ApiOkResponse({ type: WorkEntity, isArray: true })
-  async findAll(@Req() req) {
-    const filters: {
-      title?: string;
-      language?: string;
-      limit?: number;
-      page?: number;
-    } = req.query;
+  async findAll(
+    @Query('title') title?: string,
+    @Query('language') language?: string,
+    @Query('limit') limit?: number,
+    @Query('page') page?: number,
+  ) {
+    const filters = { title, language, limit, page };
 
     return this.worksService.findAll(filters);
   }

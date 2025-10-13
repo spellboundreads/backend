@@ -23,7 +23,7 @@ export class WorkEntity {
   @ApiProperty() subjects: string[] | null;
 
   @ApiProperty({ type: () => [WorkAuthorEntity] })
-  works_authors?: WorkAuthorEntity[]; // Relation to AuthorEntity
+  works_authors?: WorkAuthorEntity[];
 
   constructor({ works_authors, ...data }: Partial<WorkEntity>) {
     Object.assign(this, data);
