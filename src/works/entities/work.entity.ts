@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AuthorEntity } from 'src/authors/entities/author.entity';
+import { ReviewEntity } from 'src/reviews/entities/review.entity';
 
 class WorkAuthorEntity {
   @ApiProperty()
@@ -25,12 +26,21 @@ export class WorkEntity {
   @ApiProperty({ type: () => [WorkAuthorEntity] })
   works_authors?: WorkAuthorEntity[];
 
-  constructor({ works_authors, ...data }: Partial<WorkEntity>) {
+  @ApiProperty({ type: () => [ReviewEntity] })
+  reviews?: ReviewEntity[];
+
+  constructor({ works_authors, reviews, ...data }: Partial<WorkEntity>) {
     Object.assign(this, data);
 
     if (works_authors) {
       this.works_authors = works_authors.map((workAuthor) =>
         Object.assign(new WorkAuthorEntity(), workAuthor),
+      );
+    }
+
+    if (reviews) {
+      this.reviews = reviews.map((review) =>
+        Object.assign(new ReviewEntity(review), review),
       );
     }
   }

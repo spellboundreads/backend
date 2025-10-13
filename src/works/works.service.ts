@@ -64,6 +64,11 @@ export class WorksService {
             authors: true,
           },
         },
+        reviews: {
+          include: {
+            users: true,
+          },
+        },
       },
     });
 
@@ -165,6 +170,11 @@ export class WorksService {
           works_authors: {
             include: {
               authors: true,
+            },
+          },
+          reviews: {
+            include: {
+              users: true,
             },
           },
         },
