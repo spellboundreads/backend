@@ -32,7 +32,7 @@ export class UserEntity implements users {
   role: $Enums.user_role;
 
   @Exclude()
-  password_hash: string;
+  password: string;
 
   @Exclude()
   created_at: Date | null;

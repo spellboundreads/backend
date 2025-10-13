@@ -1,8 +1,15 @@
-import { Get, Injectable, UnauthorizedException } from '@nestjs/common';
-import { RegisterDto, LoginDto } from './dto/create-auth.dto';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
+import { AuthEntity } from './entities/auth.entity';
+import { roundsOfHashing } from 'src/users/users.controller';
 
 @Injectable()
 export class AuthService {
@@ -11,33 +18,43 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(dto: RegisterDto) {
-    const hashRound = 10;
-    const hashedPassword = await bcrypt.hash(dto.password, hashRound);
-    const { password, ...userData } = dto;
-    const user = await this.prisma.users.create({
-      data: { ...userData, password_hash: hashedPassword },
-    });
-    return this.generateToken(user.id);
-  }
-
-  async login(dto: LoginDto) {
+  async login({ email, password }: LoginDto): Promise<AuthEntity> {
     const user = await this.prisma.users.findUnique({
-      where: { email: dto.email },
+      where: { email },
     });
 
-    if (!user)
-      throw new UnauthorizedException('No users associated with this email');
+    if (!user) {
+      throw new NotFoundException(`No user found for email ${email}`);
+    }
 
-    const isMatch = await bcrypt.compare(dto.password, user.password_hash);
-    if (!isMatch) throw new UnauthorizedException('Wrong password');
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    return this.generateToken(user.id);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException(`Invalid password`);
+    }
+
+    return {
+      accessToken: this.jwtService.sign({
+        userId: user.id,
+      }),
+    };
   }
 
-  async generateToken(userId: string) {
+  async register({
+    email,
+    username,
+    password,
+  }: RegisterDto): Promise<AuthEntity> {
+    const hashedPassword = await bcrypt.hash(password, roundsOfHashing);
+    password = hashedPassword;
+
+    const user = await this.prisma.users.create({
+      data: { email, username, password },
+    });
     return {
-      access_token: this.jwtService.sign({ id: userId }, { expiresIn: '24h' }),
+      accessToken: this.jwtService.sign({
+        userId: user.id,
+      }),
     };
   }
 }
