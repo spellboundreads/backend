@@ -45,7 +45,7 @@ export class ReviewsController {
   @Patch(':id')
   @ApiOkResponse({ type: ReviewEntity })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateReviewDto: UpdateReviewDto,
   ) {
     return new ReviewEntity(
@@ -55,7 +55,7 @@ export class ReviewsController {
 
   @Delete(':id')
   @ApiOkResponse({ type: ReviewEntity })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
     return await this.reviewsService.remove(id);
   }
 }
