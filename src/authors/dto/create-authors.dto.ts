@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsDateString,
-  IsNotEmpty,
-} from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateAuthorsDto {
@@ -18,27 +13,27 @@ export class CreateAuthorsDto {
   name: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsString()
   @ApiProperty({ required: false })
-  birth_date?: Date;
-
-  @IsOptional()
-  @IsDateString()
-  @ApiProperty({ required: false })
-  death_date?: Date;
+  birth_date: string | null;
 
   @IsOptional()
   @IsString()
   @ApiProperty({ required: false })
-  bio?: string;
+  death_date: string | null;
 
   @IsOptional()
   @IsString()
   @ApiProperty({ required: false })
-  portrait_url?: string;
+  bio: string | null;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ required: false })
+  portrait_url: string | null;
 
   @IsOptional()
   @IsString({ each: true })
   @ApiProperty({ required: false })
-  photos?: string[];
+  photos: string[] | [];
 }
