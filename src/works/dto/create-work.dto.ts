@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsDateString,
   IsArray,
+  IsNumber,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -18,11 +19,10 @@ export class CreateWorkDto {
   @ApiProperty()
   title: string;
 
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  @IsDateString()
-  @ApiProperty({ required: false })
-  first_publish_date?: Date;
+  @ApiProperty()
+  first_publish_year?: number;
 
   @IsOptional()
   @IsArray()
