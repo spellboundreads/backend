@@ -18,7 +18,7 @@ export class WorkEntity {
   @ApiProperty() title: string;
   @ApiProperty() description: string | null;
   @ApiProperty() openlibrary_id: string;
-  @ApiProperty() first_publish_date: Date | null;
+  @ApiProperty() first_publish_date: string | null;
   @ApiProperty() covers: string[] | null;
   @ApiProperty() excerpts: string[] | null;
   @ApiProperty() subjects: string[] | null;
