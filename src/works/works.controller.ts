@@ -12,7 +12,12 @@ import {
 import { WorksService } from './works.service';
 import { CreateWorkDto } from './dto/create-work.dto';
 import { UpdateWorkDto } from './dto/update-work.dto';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { WorkEntity } from './entities/work.entity';
 
 @ApiTags('works')
@@ -20,6 +25,10 @@ import { WorkEntity } from './entities/work.entity';
 export class WorksController {
   constructor(private readonly worksService: WorksService) {}
   @Get()
+  @ApiQuery({ name: 'title', required: false })
+  @ApiQuery({ name: 'language', required: false })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiOkResponse({ type: WorkEntity, isArray: true })
   async findAll(
     @Query('title') title?: string,

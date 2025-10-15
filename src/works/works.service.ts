@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { OpenLibraryClient } from 'openbook.js';
 import { CreateWorkDto } from './dto/create-work.dto';
-
+import { OpenbookService } from 'src/openbook/openbook.service';
+import { WorkEntity } from './entities/work.entity';
+import { AuthorsService } from 'src/authors/authors.service';
 @Injectable()
 export class WorksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly openbook: OpenbookService,
+    private readonly authorService: AuthorsService,
+  ) {}
 
   async findAll(filters: {
     title?: string;
@@ -50,9 +55,18 @@ export class WorksService {
       searchFilters.language = language;
     }
 
-    const openbookClient = new OpenLibraryClient('spellbound');
-    const works = await openbookClient.search(searchFilters);
-    return works;
+    const works = await this.openbook.search(searchFilters);
+    const results: WorkEntity[] = [];
+    for (const work of works.docs) {
+      let newWork;
+      const existingWork = await this.findOne(work.key.split('/').pop() || '');
+      if (!existingWork) {
+        newWork = await this.findOne(work.key.split('/').pop() || '');
+      }
+      results.push(existingWork || newWork);
+    }
+
+    return results;
   }
 
   async findOne(openlibrary_id: string) {
@@ -76,78 +90,35 @@ export class WorksService {
       return existingWork;
     }
 
-    const openbookClient = new OpenLibraryClient('spellbound');
-    const work = await openbookClient.getWork(openlibrary_id);
+    const work = await this.openbook.getWork(openlibrary_id);
 
     if (work) {
-      let firstPublishDate: Date | undefined = undefined;
-
-      if (work.first_publish_date) {
-        const parsed = new Date(work.first_publish_date);
-        if (!isNaN(parsed.getTime())) {
-          firstPublishDate = parsed;
-        }
-      }
-
-      const createdWork: CreateWorkDto = {
+      const workToCreate: CreateWorkDto = {
         openlibrary_id,
         title: work.title || 'No Title',
       };
-      createdWork.first_publish_date = firstPublishDate;
-      createdWork.covers = work.covers?.map((cover) => cover.toString());
-      createdWork.description =
-        typeof work.description === 'string'
-          ? work.description
-          : work.description?.value;
-      createdWork.excerpts = work.excerpts?.map((excerpt) =>
-        typeof excerpt === 'string' ? excerpt : excerpt.excerpt,
-      );
-      createdWork.subjects = work.subjects || [];
+      if (work.first_publish_date) {
+        const year = parseInt(work.first_publish_date);
+        if (!isNaN(year)) {
+          workToCreate.first_publish_year = year;
+        }
+      }
+      workToCreate.covers = work.covers?.map((cover) => cover.toString());
+      workToCreate.description = work.description;
+      workToCreate.excerpts = work.excerpts;
+      workToCreate.subjects = work.subjects || [];
 
-      const newWork = await this.prisma.works.create({
-        data: createdWork,
-      });
+      const createdWork = await this.create(workToCreate);
 
-      const newWorkId = newWork.id;
       const authorIds: string[] = [];
 
       if (work.authors && work.authors.length > 0) {
-        const parseDate = (dateString?: string): Date | undefined => {
-          if (!dateString) return undefined;
-          const parsed = new Date(dateString);
-          return isNaN(parsed.getTime()) ? undefined : parsed;
-        };
+        for (const authorObj of work.authors) {
+          const authorKey = authorObj.author.key;
+          const authorOlid = authorKey.split('/').pop();
 
-        for (const authorRef of work.authors) {
-          const authorKey = authorRef.author.key;
-          const authorId = authorKey.split('/').pop();
-
-          if (authorId) {
-            let author = await this.prisma.authors.findUnique({
-              where: { openlibrary_id: authorId },
-            });
-
-            if (!author) {
-              const authorDetails = await openbookClient.getAuthor(authorId);
-              if (authorDetails) {
-                author = await this.prisma.authors.create({
-                  data: {
-                    openlibrary_id: authorId,
-                    name: authorDetails.name || 'Unknown Author',
-                    birth_date: parseDate(authorDetails.birth_date),
-                    death_date: parseDate(authorDetails.death_date),
-                    bio:
-                      typeof authorDetails.bio === 'string'
-                        ? authorDetails.bio
-                        : authorDetails.bio?.value,
-                    photos:
-                      authorDetails.photos?.map((photo) => photo.toString()) ||
-                      [],
-                  },
-                });
-              }
-            }
-
+          if (authorOlid) {
+            const author = await this.authorService.findOne(authorOlid);
             if (author) {
               authorIds.push(author.id);
             }
@@ -155,9 +126,18 @@ export class WorksService {
         }
 
         for (const authorId of authorIds) {
+          const existingRelation = await this.prisma.works_authors.findFirst({
+            where: {
+              work_id: createdWork.id,
+              author_id: authorId,
+            },
+          });
+          if (existingRelation) {
+            continue;
+          }
           await this.prisma.works_authors.create({
             data: {
-              work_id: newWorkId,
+              work_id: createdWork.id,
               author_id: authorId,
             },
           });
