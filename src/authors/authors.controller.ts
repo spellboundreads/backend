@@ -35,12 +35,12 @@ export class AuthorsController {
     return authors.map((author) => new AuthorEntity(author));
   }
 
-  @Get(':id')
+  @Get(':olid')
   @ApiOkResponse({ type: AuthorEntity })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    const author = await this.authorsService.findOne(id);
+  async findOne(@Param('olid') olid: string) {
+    const author = await this.authorsService.findOne(olid);
     if (!author) {
-      throw new NotFoundException(`Author with id ${id} not found`);
+      throw new NotFoundException(`Author with id ${olid} not found`);
     }
     return new AuthorEntity(author);
   }

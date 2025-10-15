@@ -3,10 +3,14 @@ import { CreateAuthorsDto } from './dto/create-authors.dto';
 import { UpdateAuthorsDto } from './dto/update-authors.dto';
 import { PrismaService } from 'src/prisma.service';
 import { authors as Author } from '@prisma/client';
+import { OpenbookService } from 'src/openbook/openbook.service';
 
 @Injectable()
 export class AuthorsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly openbook: OpenbookService,
+  ) {}
 
   async create(createAuthorsDto: CreateAuthorsDto) {
     return await this.prisma.authors.create({ data: createAuthorsDto });
@@ -16,9 +20,30 @@ export class AuthorsService {
     return await this.prisma.authors.findMany();
   }
 
-  async findOne(id: string) {
-    return await this.prisma.authors.findUnique({
-      where: { id },
+  async findOne(olid: string) {
+    const existingAuthor = await this.prisma.authors.findUnique({
+      where: { openlibrary_id: olid },
+    });
+    if (existingAuthor) {
+      return existingAuthor;
+    }
+
+    const author = await this.openbook.getAuthor(olid);
+    if (author) {
+      await this.prisma.authors.create({
+        data: {
+          name: author.name || 'Unknown Author',
+          openlibrary_id: olid,
+          birth_date: author.birth_date || null,
+          death_date: author.death_date || null,
+          bio: typeof author.bio === 'string' ? author.bio : author.bio?.value,
+          photos: author.photos?.map((photo) => photo.toString()) || [],
+        },
+      });
+    }
+
+    return this.prisma.authors.findUnique({
+      where: { openlibrary_id: olid },
     });
   }
 
