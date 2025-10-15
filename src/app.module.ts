@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { WorksModule } from './works/works.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { ShelvesModule } from './shelves/shelves.module';
+import { OpenbookModule } from './openbook/openbook.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ShelvesModule } from './shelves/shelves.module';
     WorksModule,
     ReviewsModule,
     ShelvesModule,
+    OpenbookModule,
   ],
   controllers: [AppController],
   providers: [AppService],
