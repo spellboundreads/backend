@@ -21,4 +21,8 @@ export class OpenbookService {
   async getAuthor(openlibrary_id: string) {
     return await this.openbookClient.getAuthor(openlibrary_id);
   }
+
+  async getWorksOfAuthor(openlibrary_id: string) {
+    return await this.openbookClient.getAuthorWorks(openlibrary_id);
+  }
 }

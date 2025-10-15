@@ -13,7 +13,8 @@ import { AuthorsService } from './authors.service';
 import { CreateAuthorsDto } from './dto/create-authors.dto';
 import { UpdateAuthorsDto } from './dto/update-authors.dto';
 import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
-import { AuthorEntity } from './entities/author.entity';
+import { AuthorEntity, AuthorsWorksEntity } from './entities/author.entity';
+import { WorkEntity } from 'src/works/entities/work.entity';
 @ApiTags('authors')
 @Controller('authors')
 export class AuthorsController {
@@ -43,6 +44,19 @@ export class AuthorsController {
       throw new NotFoundException(`Author with id ${olid} not found`);
     }
     return new AuthorEntity(author);
+  }
+
+  @Get(':olid/works')
+  @ApiOkResponse({ type: AuthorsWorksEntity })
+  async findWorks(@Param('olid') olid: string) {
+    const works = await this.authorsService.findWorks(olid);
+    if (!works) {
+      throw new NotFoundException(`Works for author id ${olid} not found`);
+    }
+    return new AuthorsWorksEntity({
+      size: works.size,
+      entries: works.entries.map((work) => new WorkEntity(work)),
+    });
   }
 
   @Patch(':id')

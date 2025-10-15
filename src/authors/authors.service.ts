@@ -47,6 +47,10 @@ export class AuthorsService {
     });
   }
 
+  async findWorks(olid: string) {
+    return await this.openbook.getWorksOfAuthor(olid);
+  }
+
   async update(id: string, updateAuthorsDto: UpdateAuthorsDto) {
     return await this.prisma.authors.update({
       where: { id },
