@@ -8,6 +8,9 @@ import {
   Delete,
   NotFoundException,
   Query,
+  UseGuards,
+  UnauthorizedException,
+  Req,
 } from '@nestjs/common';
 import { WorksService } from './works.service';
 import { CreateWorkDto } from './dto/create-work.dto';
@@ -17,8 +20,11 @@ import {
   ApiOkResponse,
   ApiCreatedResponse,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { WorkEntity } from './entities/work.entity';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AuthenticatedRequest } from 'src/users/users.controller';
 
 @ApiTags('works')
 @Controller('works')
@@ -52,20 +58,45 @@ export class WorksController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: WorkEntity })
-  async create(@Body() data: CreateWorkDto) {
+  async create(@Body() data: CreateWorkDto, @Req() req: AuthenticatedRequest) {
+    if (!req.user || req.user.role !== 'admin') {
+      throw new UnauthorizedException(
+        'You have to be an admin to perform this operation.',
+      );
+    }
     const work = await this.worksService.create(data);
     return new WorkEntity(work);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateWorkDto) {
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async update(
+    @Param('id') id: string,
+    @Body() data: UpdateWorkDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (!req.user || req.user.role !== 'admin') {
+      throw new UnauthorizedException(
+        'You have to be an admin to perform this operation.',
+      );
+    }
     return new WorkEntity(await this.worksService.update(id, data));
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: WorkEntity })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    if (!req.user || req.user.role !== 'admin') {
+      throw new UnauthorizedException(
+        'You have to be an admin to perform this operation.',
+      );
+    }
     return new WorkEntity(await this.worksService.remove(id));
   }
 }
