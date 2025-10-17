@@ -35,4 +35,44 @@ export class UsersService {
       where: { id },
     });
   }
+
+  follow(followerId: string, followingId: string) {
+    return this.prisma.follows.create({
+      data: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
+
+  unfollow(followerId: string, followingId: string) {
+    return this.prisma.follows.deleteMany({
+      where: {
+        follower_id: followerId,
+        following_id: followingId,
+      },
+    });
+  }
+
+  getFollowers(userId: string) {
+    return this.prisma.follows.findMany({
+      where: {
+        following_id: userId,
+      },
+      include: {
+        users_follows_follower_idTousers: true,
+      },
+    });
+  }
+
+  getFollowing(userId: string) {
+    return this.prisma.follows.findMany({
+      where: {
+        follower_id: userId,
+      },
+      include: {
+        users_follows_following_idTousers: true,
+      },
+    });
+  }
 }
