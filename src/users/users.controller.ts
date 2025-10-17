@@ -36,6 +36,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('me')
   async getMe(@Req() req: AuthenticatedRequest) {
     if (!req.user) {
@@ -86,7 +87,12 @@ export class UsersController {
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: UpdateUserDto,
+    @Req() req: AuthenticatedRequest,
   ) {
+    if (!req.user || req.user.id !== id) {
+      throw new UnauthorizedException();
+    }
+
     if (data.password) {
       data.password = await bcrypt.hash(data.password, roundsOfHashing);
     }
@@ -96,7 +102,11 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    if (!req.user || req.user.id !== id) {
+      throw new UnauthorizedException();
+    }
+
     const deleted = await this.usersService.remove(id);
     if (!deleted) throw new NotFoundException('User not found');
     return new UserEntity(deleted);
