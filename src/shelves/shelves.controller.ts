@@ -7,12 +7,23 @@ import {
   Param,
   Delete,
   NotFoundException,
+  UseGuards,
+  UnauthorizedException,
+  Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ShelvesService } from './shelves.service';
 import { CreateShelfDto } from './dto/create-shelf.dto';
 import { UpdateShelfDto } from './dto/update-shelf.dto';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ShelfEntity } from './entities/shelf.entity';
+import { AuthenticatedRequest } from 'src/users/users.controller';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('shelves')
 @ApiTags('shelves')
@@ -20,34 +31,76 @@ export class ShelvesController {
   constructor(private readonly shelvesService: ShelvesService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: ShelfEntity })
-  async create(@Body() createShelfDto: CreateShelfDto) {
-    return new ShelfEntity(await this.shelvesService.create(createShelfDto));
+  async create(@Body() data: CreateShelfDto, @Req() req: AuthenticatedRequest) {
+    if (!req.user || req.user.id !== data.user_id) {
+      throw new UnauthorizedException();
+    }
+    return new ShelfEntity(await this.shelvesService.create(data));
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: ShelfEntity, isArray: true })
-  async findAll() {
+  async findAll(@Req() req: AuthenticatedRequest) {
     const shelves = await this.shelvesService.findAll();
-    return shelves.map((shelf) => new ShelfEntity(shelf));
+    return shelves
+      .filter((shelf) => shelf.is_public || shelf.user_id === req.user.id)
+      .map((shelf) => new ShelfEntity(shelf));
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: ShelfEntity })
-  async findOne(@Param('id') id: string) {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (!req.user) {
+      throw new UnauthorizedException(
+        'You must be logged in to access shelves',
+      );
+    }
+
     const shelf = await this.shelvesService.findOne(id);
     if (!shelf) {
       throw new NotFoundException(`Shelf not found`);
     }
+
+    if (!shelf.is_public && shelf.user_id !== req.user.id) {
+      throw new UnauthorizedException('Access to this shelf is restricted');
+    }
+
     return new ShelfEntity(shelf);
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: ShelfEntity })
   async update(
     @Param('id') id: string,
     @Body() updateShelfDto: UpdateShelfDto,
+    @Req() req: AuthenticatedRequest,
   ) {
+    if (!req.user) {
+      throw new UnauthorizedException(
+        'You must be logged in to access shelves',
+      );
+    }
+
+    const shelf = await this.shelvesService.findOne(id);
+    if (!shelf) {
+      throw new NotFoundException(`Shelf not found`);
+    }
+
+    if (shelf.user_id !== req.user.id) {
+      throw new UnauthorizedException('Access to this shelf is restricted');
+    }
     return new ShelfEntity(
       await this.shelvesService.update(id, updateShelfDto),
     );
@@ -55,7 +108,24 @@ export class ShelvesController {
 
   @Delete(':id')
   @ApiOkResponse({ type: ShelfEntity })
-  async remove(@Param('id') id: string) {
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    if (!req.user) {
+      throw new UnauthorizedException(
+        'You must be logged in to access shelves',
+      );
+    }
+
+    const shelf = await this.shelvesService.findOne(id);
+    if (!shelf) {
+      throw new NotFoundException(`Shelf not found`);
+    }
+
+    if (shelf.user_id !== req.user.id) {
+      throw new UnauthorizedException('Access to this shelf is restricted');
+    }
+
     return new ShelfEntity(await this.shelvesService.remove(id));
   }
 }
