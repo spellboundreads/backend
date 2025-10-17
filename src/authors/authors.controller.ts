@@ -38,7 +38,9 @@ export class AuthorsController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user || req.user.role !== 'admin') {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        'You have to be an admin to perform this operation.',
+      );
     }
     return this.authorsService.create(createAuthorDto);
   }
@@ -86,7 +88,9 @@ export class AuthorsController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user || req.user.role !== 'admin') {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        'You have to be an admin to perform this operation.',
+      );
     }
 
     return new AuthorEntity(
@@ -103,7 +107,9 @@ export class AuthorsController {
     @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user || req.user.role !== 'admin') {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        'You have to be an admin to perform this operation.',
+      );
     }
     return await this.authorsService.remove(id);
   }
