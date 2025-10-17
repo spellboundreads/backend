@@ -22,10 +22,10 @@ export class UserEntity implements users {
   @ApiProperty()
   display_name: string | null;
 
-  @ApiProperty()
+  @Exclude()
   email: string;
 
-  @ApiProperty()
+  @Exclude()
   date_of_birth: Date | null;
 
   @Exclude()
