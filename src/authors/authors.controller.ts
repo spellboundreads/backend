@@ -8,21 +8,38 @@ import {
   Delete,
   ParseUUIDPipe,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 import { AuthorsService } from './authors.service';
 import { CreateAuthorsDto } from './dto/create-authors.dto';
 import { UpdateAuthorsDto } from './dto/update-authors.dto';
-import { ApiTags, ApiOkResponse, ApiCreatedResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthorEntity, AuthorsWorksEntity } from './entities/author.entity';
 import { WorkEntity } from 'src/works/entities/work.entity';
+import { UseGuards, UnauthorizedException } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AuthenticatedRequest } from 'src/users/users.controller';
 @ApiTags('authors')
 @Controller('authors')
 export class AuthorsController {
   constructor(private readonly authorsService: AuthorsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: AuthorEntity })
-  async create(@Body() createAuthorDto: CreateAuthorsDto) {
+  async create(
+    @Body() createAuthorDto: CreateAuthorsDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (!req.user || req.user.role !== 'admin') {
+      throw new UnauthorizedException();
+    }
     return this.authorsService.create(createAuthorDto);
   }
 
@@ -60,19 +77,34 @@ export class AuthorsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AuthorEntity })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateAuthorsDto: UpdateAuthorsDto,
+    @Req() req: AuthenticatedRequest,
   ) {
+    if (!req.user || req.user.role !== 'admin') {
+      throw new UnauthorizedException();
+    }
+
     return new AuthorEntity(
       await this.authorsService.update(id, updateAuthorsDto),
     );
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AuthorEntity })
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (!req.user || req.user.role !== 'admin') {
+      throw new UnauthorizedException();
+    }
     return await this.authorsService.remove(id);
   }
 }
