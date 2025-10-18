@@ -29,4 +29,22 @@ export class ShelvesService {
   remove(id: string) {
     return this.prisma.shelves.delete({ where: { id } });
   }
+
+  addWorkToShelf(shelfId: string, workId: string) {
+    return this.prisma.works_shelves.create({
+      data: {
+        shelf_id: shelfId,
+        work_id: workId,
+      },
+    });
+  }
+
+  removeWorkFromShelf(shelfId: string, workId: string) {
+    return this.prisma.works_shelves.deleteMany({
+      where: {
+        shelf_id: shelfId,
+        work_id: workId,
+      },
+    });
+  }
 }

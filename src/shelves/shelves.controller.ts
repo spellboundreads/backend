@@ -24,6 +24,7 @@ import {
 import { ShelfEntity } from './entities/shelf.entity';
 import { AuthenticatedRequest } from 'src/users/users.controller';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AddWorkToShelfDto } from './dto/add-work-to-shelf.dto';
 
 @Controller('shelves')
 @ApiTags('shelves')
@@ -127,5 +128,52 @@ export class ShelvesController {
     }
 
     return new ShelfEntity(await this.shelvesService.remove(id));
+  }
+
+  @Post(':id/works')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiCreatedResponse({ type: ShelfEntity })
+  async addWorkToShelf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: AddWorkToShelfDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const { work_id: workId } = body;
+    const shelf = await this.shelvesService.findOne(id);
+    if (!shelf) {
+      throw new NotFoundException(`Shelf not found`);
+    }
+
+    if (!req.user || req.user.id !== shelf.user_id) {
+      throw new UnauthorizedException();
+    }
+
+    await this.shelvesService.addWorkToShelf(id, workId);
+    return new ShelfEntity(shelf);
+  }
+
+  @Delete(':id/works/:workId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse()
+  async removeWorkFromShelf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('workId', ParseUUIDPipe) workId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const shelf = await this.shelvesService.findOne(id);
+    if (!shelf) {
+      throw new NotFoundException(`Shelf not found`);
+    }
+
+    if (!req.user || req.user.id !== shelf.user_id) {
+      throw new UnauthorizedException();
+    }
+
+    await this.shelvesService.removeWorkFromShelf(id, workId);
+    return {
+      message: `Work with ID ${workId} removed from shelf successfully`,
+    };
   }
 }
