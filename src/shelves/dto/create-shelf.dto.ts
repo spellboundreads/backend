@@ -24,8 +24,4 @@ export class CreateShelfDto {
   @IsBoolean()
   @IsOptional()
   is_public: boolean | null;
-
-  @ApiProperty()
-  @IsString()
-  user_id: string;
 }

@@ -36,15 +36,15 @@ export class ShelvesController {
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: ShelfEntity })
   async create(@Body() data: CreateShelfDto, @Req() req: AuthenticatedRequest) {
-    if (!req.user || req.user.id !== data.user_id) {
+    if (!req.user) {
       throw new UnauthorizedException();
     }
-    return new ShelfEntity(await this.shelvesService.create(data));
+    return new ShelfEntity(
+      await this.shelvesService.create({ user_id: req.user.id, ...data }),
+    );
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOkResponse({ type: ShelfEntity, isArray: true })
   async findAll(@Req() req: AuthenticatedRequest) {
     const shelves = await this.shelvesService.findAll();
@@ -85,7 +85,7 @@ export class ShelvesController {
   @ApiCreatedResponse({ type: ShelfEntity })
   async update(
     @Param('id') id: string,
-    @Body() updateShelfDto: UpdateShelfDto,
+    @Body() data: UpdateShelfDto,
     @Req() req: AuthenticatedRequest,
   ) {
     if (!req.user) {
@@ -102,9 +102,7 @@ export class ShelvesController {
     if (shelf.user_id !== req.user.id) {
       throw new UnauthorizedException('Access to this shelf is restricted');
     }
-    return new ShelfEntity(
-      await this.shelvesService.update(id, updateShelfDto),
-    );
+    return new ShelfEntity(await this.shelvesService.update(id, data));
   }
 
   @Delete(':id')

@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { CreateShelfDto } from './dto/create-shelf.dto';
-import { UpdateShelfDto } from './dto/update-shelf.dto';
 import { PrismaService } from 'src/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ShelvesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createShelfDto: CreateShelfDto) {
-    return this.prisma.shelves.create({ data: createShelfDto });
+  create(data: Prisma.shelvesUncheckedCreateInput) {
+    return this.prisma.shelves.create({ data });
   }
 
   findAll() {
@@ -19,10 +18,10 @@ export class ShelvesService {
     return this.prisma.shelves.findUnique({ where: { id } });
   }
 
-  update(id: string, updateShelfDto: UpdateShelfDto) {
+  update(id: string, data: Prisma.shelvesUncheckedUpdateInput) {
     return this.prisma.shelves.update({
       where: { id },
-      data: updateShelfDto,
+      data,
     });
   }
 
