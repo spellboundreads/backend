@@ -148,16 +148,15 @@ export class UsersController {
     return this.usersService.follow(req.user.id, following_id);
   }
 
-  @Delete(':id/following')
+  @Delete(':id/following/:following_id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse()
   async unfollow(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
-    @Body() body: FollowUserDto,
+    @Param('following_id', ParseUUIDPipe) following_id: string,
   ) {
-    const { following_id } = body;
     if (!req.user || req.user.id !== id) {
       throw new UnauthorizedException();
     }
@@ -166,7 +165,9 @@ export class UsersController {
       throw new BadRequestException('You cannot unfollow yourself');
     }
 
-    return this.usersService.unfollow(req.user.id, following_id);
+    await this.usersService.unfollow(req.user.id, following_id);
+
+    return { message: `Successfully unfollowed user ${following_id}` };
   }
 
   @Get(':id/followers')
