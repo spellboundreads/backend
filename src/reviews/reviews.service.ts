@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
 import { PrismaService } from 'src/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createReviewDto: CreateReviewDto) {
+  async create(data: Prisma.reviewsUncheckedCreateInput) {
     return this.prisma.reviews.create({
-      data: createReviewDto,
+      data,
     });
   }
 
@@ -31,7 +30,7 @@ export class ReviewsService {
     });
   }
 
-  update(id: string, updateReviewDto: UpdateReviewDto) {
+  update(id: string, updateReviewDto: Prisma.reviewsUncheckedUpdateInput) {
     return this.prisma.reviews.update({
       where: { id },
       data: updateReviewDto,

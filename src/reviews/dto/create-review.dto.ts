@@ -11,14 +11,11 @@ import {
 export class CreateReviewDto {
   @IsString()
   @ApiProperty()
-  user_id: string;
-
-  @IsString()
-  @ApiProperty()
   work_id: string;
 
   @IsString()
   @IsOptional()
+  @MinLength(1)
   @MaxLength(5000)
   @ApiProperty({ required: false })
   review_text: string;

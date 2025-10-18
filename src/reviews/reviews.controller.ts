@@ -37,10 +37,14 @@ export class ReviewsController {
     @Body() data: CreateReviewDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    if (!req.user || req.user.id !== data.user_id) {
-      throw new UnauthorizedException();
+    if (!req.user) {
+      throw new UnauthorizedException(
+        'You must be logged in to create a review',
+      );
     }
-    return new ReviewEntity(await this.reviewsService.create(data));
+    return new ReviewEntity(
+      await this.reviewsService.create({ user_id: req.user.id, ...data }),
+    );
   }
 
   @Get()
@@ -66,16 +70,22 @@ export class ReviewsController {
   @ApiOkResponse({ type: ReviewEntity })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateReviewDto: UpdateReviewDto,
+    @Body() data: UpdateReviewDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    if (!req.user || req.user.id !== id) {
+    if (!req.user) {
       throw new UnauthorizedException();
     }
 
-    return new ReviewEntity(
-      await this.reviewsService.update(id, updateReviewDto),
-    );
+    const review = await this.reviewsService.findOne(id);
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    if (review.user_id !== req.user.id) {
+      throw new UnauthorizedException();
+    }
+
+    return new ReviewEntity(await this.reviewsService.update(id, data));
   }
 
   @Delete(':id')
@@ -86,7 +96,14 @@ export class ReviewsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: AuthenticatedRequest,
   ) {
-    if (!req.user || req.user.id !== id) {
+    if (!req.user) {
+      throw new UnauthorizedException();
+    }
+    const review = await this.reviewsService.findOne(id);
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    if (review.user_id !== req.user.id) {
       throw new UnauthorizedException();
     }
     return await this.reviewsService.remove(id);
