@@ -91,4 +91,32 @@ export class ReviewsController {
     }
     return await this.reviewsService.remove(id);
   }
+
+  @Post(':id/likes')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ReviewEntity })
+  async like(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (!req.user) {
+      throw new UnauthorizedException();
+    }
+    return await this.reviewsService.like(req.user.id, id);
+  }
+
+  @Delete(':id/likes')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ReviewEntity })
+  async unlike(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (!req.user) {
+      throw new UnauthorizedException();
+    }
+    return await this.reviewsService.unlike(req.user.id, id);
+  }
 }

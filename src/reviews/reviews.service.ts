@@ -43,4 +43,22 @@ export class ReviewsService {
       where: { id },
     });
   }
+
+  like(user_id: string, review_id: string) {
+    return this.prisma.review_likes.create({
+      data: {
+        user_id,
+        review_id,
+      },
+    });
+  }
+
+  unlike(user_id: string, review_id: string) {
+    return this.prisma.review_likes.deleteMany({
+      where: {
+        user_id,
+        review_id,
+      },
+    });
+  }
 }
