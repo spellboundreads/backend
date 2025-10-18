@@ -127,41 +127,36 @@ export class UsersController {
     return [];
   }
 
-  @Post(':id/following')
+  @Post('following')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiCreatedResponse()
-  async follow(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: FollowUserDto,
-    @Req() req: AuthenticatedRequest,
-  ) {
+  async follow(@Body() body: FollowUserDto, @Req() req: AuthenticatedRequest) {
     const { following_id } = body;
-    if (!req.user || req.user.id !== id) {
+    if (!req.user) {
       throw new UnauthorizedException();
     }
 
-    if (id === following_id) {
+    if (req.user.id === following_id) {
       throw new BadRequestException('You cannot follow yourself');
     }
 
     return this.usersService.follow(req.user.id, following_id);
   }
 
-  @Delete(':id/following/:following_id')
+  @Delete('following/:following_id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse()
   async unfollow(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: AuthenticatedRequest,
     @Param('following_id', ParseUUIDPipe) following_id: string,
+    @Req() req: AuthenticatedRequest,
   ) {
-    if (!req.user || req.user.id !== id) {
+    if (!req.user) {
       throw new UnauthorizedException();
     }
 
-    if (id === following_id) {
+    if (req.user.id === following_id) {
       throw new BadRequestException('You cannot unfollow yourself');
     }
 
