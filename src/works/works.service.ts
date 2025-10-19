@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreateWorkDto } from './dto/create-work.dto';
 import { OpenbookService } from 'src/openbook/openbook.service';
-import { WorkEntity } from './entities/work.entity';
 import { AuthorsService } from 'src/authors/authors.service';
 @Injectable()
 export class WorksService {
@@ -56,17 +55,7 @@ export class WorksService {
     }
 
     const works = await this.openbook.search(searchFilters);
-    const results: WorkEntity[] = [];
-    for (const work of works.docs) {
-      let newWork;
-      const existingWork = await this.findOne(work.key.split('/').pop() || '');
-      if (!existingWork) {
-        newWork = await this.findOne(work.key.split('/').pop() || '');
-      }
-      results.push(existingWork || newWork);
-    }
-
-    return results;
+    return works;
   }
 
   async findOne(openlibrary_id: string) {
@@ -114,8 +103,10 @@ export class WorksService {
 
       if (work.authors && work.authors.length > 0) {
         for (const authorObj of work.authors) {
-          const authorKey = authorObj.author.key;
-          const authorOlid = authorKey.split('/').pop();
+          if (!authorObj.key || typeof authorObj.key !== 'string') {
+            continue;
+          }
+          const authorOlid = authorObj.key?.split('/').pop();
 
           if (authorOlid) {
             const author = await this.authorService.findOne(authorOlid);
