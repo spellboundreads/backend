@@ -3,9 +3,11 @@ import { AppModule } from './app.module';
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -18,7 +20,7 @@ async function bootstrap() {
     .setTitle('spellbound')
     .setDescription('A platform for discovering and sharing literary works')
     .setVersion('0.1')
-    .addBearerAuth()
+    .addCookieAuth('token')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -30,7 +32,7 @@ async function bootstrap() {
   app.enableCors({
     origin: `http://localhost:4000`,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    // credentials: true,
+    credentials: true,
   });
   await app.listen(process.env.PORT ?? 3000);
 }
