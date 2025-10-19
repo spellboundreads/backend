@@ -23,9 +23,9 @@ export class ReviewsService {
     });
   }
 
-  findOne(id: string) {
+  findOne(reviewsWhereUniqueInput: Prisma.reviewsWhereUniqueInput) {
     return this.prisma.reviews.findUnique({
-      where: { id },
+      where: reviewsWhereUniqueInput,
       include: {
         users: true,
         works: true,

@@ -54,10 +54,28 @@ export class ReviewsController {
     return reviews.map((review) => new ReviewEntity(review));
   }
 
+  @Get('by-user-work/:userId/:workId')
+  @ApiOkResponse({ type: ReviewEntity })
+  async findByUserAndWork(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Param('workId', ParseUUIDPipe) workId: string,
+  ) {
+    const review = await this.reviewsService.findOne({
+      user_id_work_id: {
+        user_id: userId,
+        work_id: workId,
+      },
+    });
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    return new ReviewEntity(review);
+  }
+
   @Get(':id')
   @ApiOkResponse({ type: ReviewEntity })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    const review = await this.reviewsService.findOne(id);
+    const review = await this.reviewsService.findOne({ id });
     if (!review) {
       throw new NotFoundException('Review not found');
     }
@@ -77,7 +95,7 @@ export class ReviewsController {
       throw new UnauthorizedException();
     }
 
-    const review = await this.reviewsService.findOne(id);
+    const review = await this.reviewsService.findOne({ id });
     if (!review) {
       throw new NotFoundException('Review not found');
     }
@@ -99,7 +117,7 @@ export class ReviewsController {
     if (!req.user) {
       throw new UnauthorizedException();
     }
-    const review = await this.reviewsService.findOne(id);
+    const review = await this.reviewsService.findOne({ id });
     if (!review) {
       throw new NotFoundException('Review not found');
     }
