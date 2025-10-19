@@ -19,7 +19,7 @@ import {
   ApiTags,
   ApiOkResponse,
   ApiCreatedResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
 } from '@nestjs/swagger';
 import { ShelfEntity } from './entities/shelf.entity';
 import { AuthenticatedRequest } from 'src/users/users.controller';
@@ -33,7 +33,7 @@ export class ShelvesController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiCreatedResponse({ type: ShelfEntity })
   async create(@Body() data: CreateShelfDto, @Req() req: AuthenticatedRequest) {
     if (!req.user) {
@@ -55,7 +55,7 @@ export class ShelvesController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: ShelfEntity })
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -81,7 +81,7 @@ export class ShelvesController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiCreatedResponse({ type: ShelfEntity })
   async update(
     @Param('id') id: string,
@@ -108,7 +108,7 @@ export class ShelvesController {
   @Delete(':id')
   @ApiOkResponse({ type: ShelfEntity })
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user) {
       throw new UnauthorizedException(
@@ -130,7 +130,7 @@ export class ShelvesController {
 
   @Post(':id/works')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiCreatedResponse({ type: ShelfEntity })
   async addWorkToShelf(
     @Param('id', ParseUUIDPipe) id: string,
@@ -153,7 +153,7 @@ export class ShelvesController {
 
   @Delete(':id/works/:workId')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse()
   async removeWorkFromShelf(
     @Param('id', ParseUUIDPipe) id: string,

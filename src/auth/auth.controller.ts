@@ -1,4 +1,5 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -14,10 +15,31 @@ export class AuthController {
   async register(@Body() data: RegisterDto) {
     return this.authService.register(data);
   }
-
   @Post('login')
-  @ApiOkResponse({ type: AuthEntity })
-  async login(@Body() data: LoginDto) {
-    return this.authService.login(data);
+  @ApiOkResponse()
+  async login(
+    @Body() data: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken } = await this.authService.login(data);
+    res.cookie('token', accessToken, {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    return { message: 'Login successful' };
+  }
+
+  @Post('logout')
+  @ApiOkResponse()
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite: 'lax',
+    });
+    return { message: 'Logout successful' };
   }
 }

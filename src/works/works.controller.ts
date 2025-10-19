@@ -20,7 +20,7 @@ import {
   ApiOkResponse,
   ApiCreatedResponse,
   ApiQuery,
-  ApiBearerAuth,
+  ApiCookieAuth,
 } from '@nestjs/swagger';
 import { WorkEntity } from './entities/work.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -59,7 +59,7 @@ export class WorksController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiCreatedResponse({ type: WorkEntity })
   async create(@Body() data: CreateWorkDto, @Req() req: AuthenticatedRequest) {
     if (!req.user || req.user.role !== 'admin') {
@@ -73,7 +73,7 @@ export class WorksController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   async update(
     @Param('id') id: string,
     @Body() data: UpdateWorkDto,
@@ -89,7 +89,7 @@ export class WorksController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: WorkEntity })
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user || req.user.role !== 'admin') {
