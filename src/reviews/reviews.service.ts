@@ -9,6 +9,9 @@ export class ReviewsService {
   async create(data: Prisma.reviewsUncheckedCreateInput) {
     return this.prisma.reviews.create({
       data,
+      include: {
+        users: true,
+      },
     });
   }
 
