@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma.service';
 import { CreateWorkDto } from './dto/create-work.dto';
 import { OpenbookService } from 'src/openbook/openbook.service';
 import { AuthorsService } from 'src/authors/authors.service';
+import { WorkSchema } from 'openbook.js';
 @Injectable()
 export class WorksService {
   constructor(
@@ -103,10 +104,7 @@ export class WorksService {
 
       if (work.authors && work.authors.length > 0) {
         for (const authorObj of work.authors) {
-          if (!authorObj.key || typeof authorObj.key !== 'string') {
-            continue;
-          }
-          const authorOlid = authorObj.key?.split('/').pop();
+          const authorOlid = authorObj.key.split('/').pop();
 
           if (authorOlid) {
             const author = await this.authorService.findOne(authorOlid);
