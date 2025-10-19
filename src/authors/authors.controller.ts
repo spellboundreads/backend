@@ -17,7 +17,7 @@ import {
   ApiTags,
   ApiOkResponse,
   ApiCreatedResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
 } from '@nestjs/swagger';
 import { AuthorEntity, AuthorsWorksEntity } from './entities/author.entity';
 import { WorkEntity } from 'src/works/entities/work.entity';
@@ -31,7 +31,7 @@ export class AuthorsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiCreatedResponse({ type: AuthorEntity })
   async create(
     @Body() createAuthorDto: CreateAuthorsDto,
@@ -80,7 +80,7 @@ export class AuthorsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: AuthorEntity })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -100,7 +100,7 @@ export class AuthorsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: AuthorEntity })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,

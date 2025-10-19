@@ -21,13 +21,13 @@ import {
   ApiTags,
   ApiOkResponse,
   ApiCreatedResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
 } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { isArray } from 'class-validator';
 import { FollowUserDto } from './dto/follow-user.dto';
-
+import { Request } from 'express';
 export const roundsOfHashing = 10;
 export interface AuthenticatedRequest extends Request {
   user: UserEntity;
@@ -39,7 +39,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @Get('me')
   async getMe(@Req() req: AuthenticatedRequest) {
     if (!req.user) {
@@ -66,7 +66,7 @@ export class UsersController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async findAll() {
     const users = await this.usersService.findAll();
@@ -75,7 +75,7 @@ export class UsersController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findOne(id);
@@ -85,7 +85,7 @@ export class UsersController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiCreatedResponse({ type: UserEntity })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -104,7 +104,7 @@ export class UsersController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     if (!req.user || req.user.id !== id) {
       throw new UnauthorizedException();
@@ -129,7 +129,7 @@ export class UsersController {
 
   @Post('following')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiCreatedResponse()
   async follow(@Body() body: FollowUserDto, @Req() req: AuthenticatedRequest) {
     const { following_id } = body;
@@ -146,7 +146,7 @@ export class UsersController {
 
   @Delete('following/:following_id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse()
   async unfollow(
     @Param('following_id', ParseUUIDPipe) following_id: string,

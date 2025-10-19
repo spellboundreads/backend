@@ -19,7 +19,7 @@ import {
   ApiTags,
   ApiOkResponse,
   ApiCreatedResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
 } from '@nestjs/swagger';
 import { ReviewEntity } from './entities/review.entity';
 import { AuthenticatedRequest } from 'src/users/users.controller';
@@ -31,7 +31,7 @@ export class ReviewsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiCreatedResponse({ type: ReviewEntity })
   async create(
     @Body() data: CreateReviewDto,
@@ -84,7 +84,7 @@ export class ReviewsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: ReviewEntity })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -108,7 +108,7 @@ export class ReviewsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: ReviewEntity })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
@@ -129,7 +129,7 @@ export class ReviewsController {
 
   @Post(':id/likes')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: ReviewEntity })
   async like(
     @Param('id', ParseUUIDPipe) id: string,
@@ -143,7 +143,7 @@ export class ReviewsController {
 
   @Delete(':id/likes')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth('token')
   @ApiOkResponse({ type: ReviewEntity })
   async unlike(
     @Param('id', ParseUUIDPipe) id: string,
