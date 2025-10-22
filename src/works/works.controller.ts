@@ -35,7 +35,7 @@ export class WorksController {
   @ApiQuery({ name: 'language', required: false })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiOkResponse({ type: WorkEntity, isArray: true })
+  @ApiOkResponse()
   async findAll(
     @Query('title') title?: string,
     @Query('language') language?: string,
@@ -44,7 +44,8 @@ export class WorksController {
   ) {
     const filters = { title, language, limit, page };
 
-    return this.worksService.findAll(filters);
+    const works = await this.worksService.findAll(filters);
+    return works;
   }
 
   @Get(':olid')

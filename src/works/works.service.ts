@@ -18,21 +18,6 @@ export class WorksService {
     limit?: number;
     page?: number;
   }) {
-    if (
-      !filters.title &&
-      !filters.language &&
-      !filters.limit &&
-      !filters.page
-    ) {
-      return await this.prisma.works.findMany({
-        take: 10,
-        skip: 0,
-        orderBy: {
-          created_at: 'desc',
-        },
-      });
-    }
-
     const { title, language, limit, page } = filters;
     if (!title) {
       return [];
@@ -103,31 +88,41 @@ export class WorksService {
       const authorIds: string[] = [];
 
       if (work.authors && work.authors.length > 0) {
-        for (const authorObj of work.authors) {
-          const authorOlid = authorObj.key.split('/').pop();
+        if (work.authors.length < 5) {
+          for (const authorObj of work.authors) {
+            const authorOlid = authorObj.key.split('/').pop();
 
-          if (authorOlid) {
-            const author = await this.authorService.findOne(authorOlid);
-            if (author) {
-              authorIds.push(author.id);
+            if (authorOlid) {
+              const author = await this.authorService.findOne(authorOlid);
+              if (author) {
+                authorIds.push(author.id);
+              }
             }
           }
-        }
 
-        for (const authorId of authorIds) {
-          const existingRelation = await this.prisma.works_authors.findFirst({
-            where: {
-              work_id: createdWork.id,
-              author_id: authorId,
-            },
-          });
-          if (existingRelation) {
-            continue;
+          for (const authorId of authorIds) {
+            const existingRelation = await this.prisma.works_authors.findFirst({
+              where: {
+                work_id: createdWork.id,
+                author_id: authorId,
+              },
+            });
+            if (existingRelation) {
+              continue;
+            }
+            await this.prisma.works_authors.create({
+              data: {
+                work_id: createdWork.id,
+                author_id: authorId,
+              },
+            });
           }
+        } else {
+          const variousAuthorId = `eee1babe-52c4-477c-b9e4-3be6a487f565`;
           await this.prisma.works_authors.create({
             data: {
               work_id: createdWork.id,
-              author_id: authorId,
+              author_id: variousAuthorId,
             },
           });
         }
