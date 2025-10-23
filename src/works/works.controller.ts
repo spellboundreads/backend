@@ -11,6 +11,7 @@ import {
   UseGuards,
   UnauthorizedException,
   Req,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { WorksService } from './works.service';
 import { CreateWorkDto } from './dto/create-work.dto';
@@ -25,6 +26,8 @@ import {
 import { WorkEntity } from './entities/work.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { AuthenticatedRequest } from 'src/users/users.controller';
+import { ReviewEntity } from 'src/reviews/entities/review.entity';
+import { isArray } from 'class-validator';
 
 @ApiTags('works')
 @Controller('works')
@@ -63,7 +66,7 @@ export class WorksController {
   @ApiCookieAuth('token')
   @ApiCreatedResponse({ type: WorkEntity })
   async create(@Body() data: CreateWorkDto, @Req() req: AuthenticatedRequest) {
-    if (!req.user || req.user.role !== 'admin') {
+    if (req.user.role !== 'admin') {
       throw new UnauthorizedException(
         'You have to be an admin to perform this operation.',
       );
@@ -80,7 +83,7 @@ export class WorksController {
     @Body() data: UpdateWorkDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    if (!req.user || req.user.role !== 'admin') {
+    if (req.user.role !== 'admin') {
       throw new UnauthorizedException(
         'You have to be an admin to perform this operation.',
       );
@@ -93,11 +96,34 @@ export class WorksController {
   @ApiCookieAuth('token')
   @ApiOkResponse({ type: WorkEntity })
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (!req.user || req.user.role !== 'admin') {
+    if (req.user.role !== 'admin') {
       throw new UnauthorizedException(
         'You have to be an admin to perform this operation.',
       );
     }
     return new WorkEntity(await this.worksService.remove(id));
+  }
+
+  @Get(':id/reviews')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('token')
+  @ApiOkResponse({ type: ReviewEntity, isArray: true })
+  async getCommunityReviews(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('offset', ParseIntPipe) offset: number,
+  ) {
+    const reviews = await this.worksService.getCommmunityReviews(
+      id,
+      limit,
+      offset,
+      req.user.id,
+    );
+
+    if (isArray(reviews)) {
+      return reviews.map((review) => new ReviewEntity(review));
+    }
+    return reviews;
   }
 }

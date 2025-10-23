@@ -160,4 +160,30 @@ export class WorksService {
   remove(id: string) {
     return this.prisma.works.delete({ where: { id } });
   }
+
+  getCommmunityReviews(
+    work_id: string,
+    limit?: number,
+    offset?: number,
+    exclude_user_id?: string, // optional
+  ) {
+    const where: {
+      work_id: string;
+      user_id?: { not: string };
+    } = { work_id };
+
+    if (exclude_user_id) {
+      where.user_id = { not: exclude_user_id }; 
+    }
+
+    return this.prisma.reviews.findMany({
+      where,
+      take: limit,
+      skip: offset,
+      orderBy: { created_at: 'desc' },
+      include: {
+        users: true,
+      },
+    });
+  }
 }
