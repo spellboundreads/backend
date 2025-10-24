@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   NotFoundException,
   Req,
+  Query
 } from '@nestjs/common';
 import { AuthorsService } from './authors.service';
 import { CreateAuthorsDto } from './dto/create-authors.dto';
@@ -18,6 +19,7 @@ import {
   ApiOkResponse,
   ApiCreatedResponse,
   ApiCookieAuth,
+  ApiQuery
 } from '@nestjs/swagger';
 import { AuthorEntity, AuthorsWorksEntity } from './entities/author.entity';
 import { WorkEntity } from 'src/works/entities/work.entity';
@@ -66,9 +68,11 @@ export class AuthorsController {
   }
 
   @Get(':olid/works')
+  @ApiQuery({name: 'limit', required: false, type: Number})
+  @ApiQuery({name: 'offset', required: false, type: Number})
   @ApiOkResponse({ type: AuthorsWorksEntity })
-  async findWorks(@Param('olid') olid: string) {
-    const works = await this.authorsService.findWorks(olid);
+  async findWorks(@Param('olid') olid: string, @Query('limit') limit?: number, @Query('offset') offset?: number) {
+    const works = await this.authorsService.findWorks(olid, limit, offset);
     if (!works) {
       throw new NotFoundException(`Works for author id ${olid} not found`);
     }

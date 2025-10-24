@@ -47,7 +47,7 @@ export class AuthorsService {
     });
   }
 
-  async findWorks(olid: string) {
+  async findWorks(olid: string, limit?: number, offset?: number) {
     if (olid === 'VARIOUSAUTHORS') {
       const res = await this.prisma.works_authors.findMany({
         where: {
@@ -56,6 +56,8 @@ export class AuthorsService {
         include: {
           works: true,
         },
+        take: limit,
+        skip: offset,
       });
 
       if (!res) {
@@ -84,7 +86,7 @@ export class AuthorsService {
       };
     }
 
-    const response = await this.openbook.getWorksOfAuthor(olid);
+    const response = await this.openbook.getWorksOfAuthor(olid, limit, offset);
     return {
       ...response,
       entries: response.entries.map((w) => ({
