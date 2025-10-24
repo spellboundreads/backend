@@ -48,7 +48,7 @@ export class AuthorsService {
   }
 
   async findWorks(olid: string) {
-    if (olid === 'VARIOUS_AUTHOR') {
+    if (olid === 'VARIOUSAUTHORS') {
       const res = await this.prisma.works_authors.findMany({
         where: {
           author_id: `eee1babe-52c4-477c-b9e4-3be6a487f565`,
@@ -70,10 +70,31 @@ export class AuthorsService {
         },
       });
 
-      return { size: count, entries: res.map((r) => r.works) };
+      return {
+        size: count,
+        entries: res
+          .map((r) => r.works)
+          .map((w) => ({
+            title: w.title,
+            key: w.openlibrary_id,
+            description: w.description,
+            covers: w.covers,
+            first_publish_year: w.first_publish_year?.toString(),
+          })),
+      };
     }
 
-    return await this.openbook.getWorksOfAuthor(olid);
+    const response = await this.openbook.getWorksOfAuthor(olid);
+    return {
+      ...response,
+      entries: response.entries.map((w) => ({
+        first_publish_year: w.first_publish_date?.toString(),
+        title: w.title,
+        key: w.key,
+        description: w.description || null,
+        covers: w.covers || [],
+      })),
+    };
   }
 
   async update(id: string, updateAuthorsDto: UpdateAuthorsDto) {
