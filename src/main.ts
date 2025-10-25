@@ -30,7 +30,7 @@ async function bootstrap() {
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
   app.enableCors({
-    origin: `https://spellboundreads.vercel.app/`,
+    origin: `https://spellboundreads.vercel.app`,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
