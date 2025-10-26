@@ -75,4 +75,39 @@ export class UsersService {
       },
     });
   }
+
+  async getShelves(userId: string, includesPrivate: boolean) {
+    let count = 0;
+    if (includesPrivate) {
+      count = await this.prisma.shelves.count({
+        where: {
+          user_id: userId,
+        },
+      });
+      return {
+        num_found: count,
+        shelves: await this.prisma.shelves.findMany({
+          where: {
+            user_id: userId,
+          },
+        })
+      }
+    } else {
+      count = await this.prisma.shelves.count({
+        where: {
+          user_id: userId,
+          is_public: true,
+        },
+      });
+      return {
+        num_found: count,
+        shelves: await this.prisma.shelves.findMany({
+          where: {
+            user_id: userId,
+            is_public: true,
+          },
+        }),
+      };
+    }
+  }
 }

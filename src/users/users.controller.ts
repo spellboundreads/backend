@@ -28,6 +28,8 @@ import * as bcrypt from 'bcrypt';
 import { isArray } from 'class-validator';
 import { FollowUserDto } from './dto/follow-user.dto';
 import { Request } from 'express';
+import { ShelfEntity } from 'src/shelves/entities/shelf.entity';
+
 export const roundsOfHashing = 10;
 export interface AuthenticatedRequest extends Request {
   user: UserEntity;
@@ -175,5 +177,20 @@ export class UsersController {
       });
     }
     return [];
+  }
+
+  @Get(':id/shelves')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('token')
+  @ApiOkResponse()
+  async getShelves(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthenticatedRequest) {
+    const includesPrivate = req.user.id === id;
+    const shelves = await this.usersService.getShelves(id, includesPrivate);
+    return {
+      num_found: shelves.num_found,
+      shelves: shelves.shelves.map((shelf) => {
+        return new ShelfEntity(shelf);
+      }),
+    };
   }
 }
