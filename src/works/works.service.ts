@@ -190,4 +190,25 @@ export class WorksService {
       }),
     };
   }
+
+  async addToShelves(workId: string, shelfIds: string[]) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.works_shelves.deleteMany({
+        where: { work_id: workId },
+      });
+
+      if (!shelfIds || shelfIds.length === 0) return;
+
+      await tx.works_shelves.createMany({
+        data: shelfIds.map((shelfId) => ({
+          work_id: workId,
+          shelf_id: shelfId,
+        })),
+        skipDuplicates: true,
+      });
+    });
+
+    return true;
+  }
+
 }

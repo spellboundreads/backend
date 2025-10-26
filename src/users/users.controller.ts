@@ -12,6 +12,7 @@ import {
   NotFoundException,
   UnauthorizedException,
   BadRequestException,
+  Query
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,12 +23,15 @@ import {
   ApiOkResponse,
   ApiCreatedResponse,
   ApiCookieAuth,
+  ApiQuery
 } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { isArray } from 'class-validator';
 import { FollowUserDto } from './dto/follow-user.dto';
 import { Request } from 'express';
+import { ShelfEntity } from 'src/shelves/entities/shelf.entity';
+
 export const roundsOfHashing = 10;
 export interface AuthenticatedRequest extends Request {
   user: UserEntity;
@@ -175,5 +179,31 @@ export class UsersController {
       });
     }
     return [];
+  }
+
+  @Get(':id/shelves')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('token')
+  @ApiQuery({ name: 'work_id', required: false })
+  @ApiOkResponse()
+  async getShelves(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('work_id') workId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const includesPrivate = req.user.id === id;
+
+    if (workId) {
+      const shelves = await this.usersService.getShelfOfUserThatIncludesWork(id, workId);
+      return shelves.map((shelf) => new ShelfEntity(shelf));
+    }
+
+    const shelves = await this.usersService.getShelves(id, includesPrivate);
+    return {
+      num_found: shelves.num_found,
+      shelves: await Promise.all(
+        shelves.shelves.map((shelf) => new ShelfEntity(shelf)),
+      ),
+    };
   }
 }

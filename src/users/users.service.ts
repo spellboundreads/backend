@@ -5,7 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   create(createUserDto: CreateUserDto) {
     return this.prisma.users.create({ data: createUserDto });
@@ -74,5 +74,54 @@ export class UsersService {
         users_follows_following_idTousers: true,
       },
     });
+  }
+
+  async getShelves(userId: string, includesPrivate: boolean, workId?: string) {
+    let count = 0;
+    if (includesPrivate) {
+      count = await this.prisma.shelves.count({
+        where: {
+          user_id: userId,
+        },
+      });
+      return {
+        num_found: count,
+        shelves: await this.prisma.shelves.findMany({
+          where: {
+            user_id: userId,
+          },
+        })
+      }
+    } else {
+      count = await this.prisma.shelves.count({
+        where: {
+          user_id: userId,
+          is_public: true,
+        },
+      });
+      return {
+        num_found: count,
+        shelves: await this.prisma.shelves.findMany({
+          where: {
+            user_id: userId,
+            is_public: true,
+          },
+        }),
+      };
+    }
+  }
+
+  async getShelfOfUserThatIncludesWork(userId: string, workId: string) {
+    const shelves = await this.prisma.shelves.findMany({
+      where: {
+        user_id: userId,
+        works_shelves: {
+          some: {
+            work_id: workId,
+          }
+        }
+      },
+    });
+    return shelves;
   }
 }
