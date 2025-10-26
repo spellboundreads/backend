@@ -184,27 +184,26 @@ export class UsersController {
   @Get(':id/shelves')
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth('token')
+  @ApiQuery({ name: 'work_id', required: false })
   @ApiOkResponse()
-  async getShelves(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthenticatedRequest) {
+  async getShelves(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('work_id') workId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     const includesPrivate = req.user.id === id;
+
+    if (workId) {
+      const shelves = await this.usersService.getShelfOfUserThatIncludesWork(id, workId);
+      return shelves.map((shelf) => new ShelfEntity(shelf));
+    }
+
     const shelves = await this.usersService.getShelves(id, includesPrivate);
     return {
       num_found: shelves.num_found,
-      shelves: shelves.shelves.map(async (shelf) => {
-        return await new ShelfEntity(shelf);
-      }),
+      shelves: await Promise.all(
+        shelves.shelves.map((shelf) => new ShelfEntity(shelf)),
+      ),
     };
-  }
-
-  @Get(':id/shelves/:shelf_id')
-  @UseGuards(JwtAuthGuard)
-  @ApiCookieAuth('token')
-  @ApiQuery({ name: 'work_id', required: false })
-  @ApiOkResponse()
-  async getShelvesOfUsersContainingWork(@Param('id', ParseUUIDPipe) id: string, @Query('work_id') work_id: string, @Req() req: AuthenticatedRequest) {
-    const shelves = await this.usersService.getShelfOfUserThatIncludesWork(id, work_id);
-    return await Promise.all(shelves.map(async (shelf) => {
-      return await new ShelfEntity(shelf);
-    }));
   }
 }

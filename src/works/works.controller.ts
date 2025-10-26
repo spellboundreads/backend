@@ -136,14 +136,16 @@ export class WorksController {
   @ApiOkResponse({ type: WorkEntity })
   async addToShelves(
     @Param('id') workId: string,
-    @Body() data : AddWorkToShelvesDto,
+    @Body() data: AddWorkToShelvesDto,
     @Req() req: AuthenticatedRequest,
   ) {
     const work = await this.prisma.works.findUnique({ where: { id: workId } });
     if (!work) {
       throw new NotFoundException('Work not found');
     }
+
     await this.worksService.addToShelves(workId, data.shelf_ids);
     return new WorkEntity(work);
   }
+
 }
