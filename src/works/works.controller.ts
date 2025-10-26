@@ -22,17 +22,20 @@ import {
   ApiCreatedResponse,
   ApiQuery,
   ApiCookieAuth,
+  ApiBody
 } from '@nestjs/swagger';
 import { WorkEntity } from './entities/work.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { AuthenticatedRequest } from 'src/users/users.controller';
 import { ReviewEntity } from 'src/reviews/entities/review.entity';
 import { isArray } from 'class-validator';
+import { AddWorkToShelvesDto } from './dto/add-work-to-shelves.dto';
+import { PrismaService } from 'src/prisma.service';
 
 @ApiTags('works')
 @Controller('works')
 export class WorksController {
-  constructor(private readonly worksService: WorksService) {}
+  constructor(private readonly worksService: WorksService, private readonly prisma: PrismaService) { }
   @Get()
   @ApiQuery({ name: 'title', required: false })
   @ApiQuery({ name: 'language', required: false })
@@ -125,5 +128,22 @@ export class WorksController {
       return reviews.map((review) => new ReviewEntity(review));
     }
     return reviews;
+  }
+
+  @Post(':id/shelves')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('token')
+  @ApiOkResponse({ type: WorkEntity })
+  async addToShelves(
+    @Param('id') workId: string,
+    @Body() data : AddWorkToShelvesDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const work = await this.prisma.works.findUnique({ where: { id: workId } });
+    if (!work) {
+      throw new NotFoundException('Work not found');
+    }
+    await this.worksService.addToShelves(workId, data.shelf_ids);
+    return new WorkEntity(work);
   }
 }

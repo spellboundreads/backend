@@ -190,4 +190,17 @@ export class WorksService {
       }),
     };
   }
+
+  async addToShelves(workId: string, shelfIds: string[]) {
+    await Promise.all(
+      shelfIds.map(async (shelfId) => {
+        await this.prisma.works_shelves.create({
+          data: {
+            work_id: workId,
+            shelf_id: shelfId,
+          },
+        });
+      })
+    );
+  }
 }
