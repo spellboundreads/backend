@@ -5,7 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   create(createUserDto: CreateUserDto) {
     return this.prisma.users.create({ data: createUserDto });
@@ -76,7 +76,7 @@ export class UsersService {
     });
   }
 
-  async getShelves(userId: string, includesPrivate: boolean) {
+  async getShelves(userId: string, includesPrivate: boolean, workId?: string) {
     let count = 0;
     if (includesPrivate) {
       count = await this.prisma.shelves.count({
@@ -109,5 +109,19 @@ export class UsersService {
         }),
       };
     }
+  }
+
+  async getShelfOfUserThatIncludesWork(userId: string, workId: string) {
+    const shelves = await this.prisma.shelves.findMany({
+      where: {
+        user_id: userId,
+        works_shelves: {
+          some: {
+            work_id: workId,
+          }
+        }
+      },
+    });
+    return shelves;
   }
 }
