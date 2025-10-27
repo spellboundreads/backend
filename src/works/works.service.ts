@@ -211,4 +211,45 @@ export class WorksService {
     return true;
   }
 
+  async getNewlyAddedWorks() {
+    const works = await this.prisma.works.findMany({
+      where: { created_at: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
+      orderBy: { created_at: 'desc' },
+      take: 10,
+    });
+    return works;
+  }
+
+  async getReviewedWorks() {
+    const works = await this.prisma.works.findMany({
+      where: {
+        created_at: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+      orderBy: {
+        reviews: {
+          _count: 'desc',
+        },
+      },
+      take: 10,
+    });
+
+    return works;
+  }
+
+  async getMostShelvedWorks() {
+    const works = await this.prisma.works.findMany({
+      orderBy: {
+        works_shelves: {
+          _count: 'desc',
+        },
+      },
+      take: 10,
+    });
+
+    return works;
+  }
+
+
 }

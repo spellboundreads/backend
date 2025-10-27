@@ -36,6 +36,27 @@ import { PrismaService } from 'src/prisma.service';
 @Controller('works')
 export class WorksController {
   constructor(private readonly worksService: WorksService, private readonly prisma: PrismaService) { }
+  @Get("/newly-added")
+  @ApiOkResponse({ type: [WorkEntity] })
+  async getNewlyAddedWorks() {
+    const works = await this.worksService.getNewlyAddedWorks();
+    return works;
+  }
+
+  @Get("/most-reviewed")
+  @ApiOkResponse({ type: [WorkEntity] })
+  async getReviewedWorks() {
+    const works = await this.worksService.getReviewedWorks();
+    return works;
+  }
+  
+  @Get("/most-shelved")
+  @ApiOkResponse({ type: [WorkEntity] })
+  async getMostShelvedWorks() {
+    const works = await this.worksService.getMostShelvedWorks();
+    return works;
+  }
+
   @Get()
   @ApiQuery({ name: 'title', required: false })
   @ApiQuery({ name: 'language', required: false })
@@ -147,5 +168,4 @@ export class WorksController {
     await this.worksService.addToShelves(workId, data.shelf_ids);
     return new WorkEntity(work);
   }
-
 }
