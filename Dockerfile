@@ -3,6 +3,8 @@ FROM node:${NODE_VERSION}
 
 WORKDIR /backend
 
+RUN apk add --no-cache curl
+
 COPY package*.json .
 RUN npm ci 
 
