@@ -11,6 +11,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    depends_on:
+      db:
+        condition: service_healthy
 
   nginx:
     build: ./nginx 
@@ -20,7 +23,8 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
   db:
     image: postgres:17
@@ -29,6 +33,11 @@ services:
       - .env
     volumes: 
       - spellbound_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
 
 volumes:
   spellbound_data:
