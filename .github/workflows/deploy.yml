@@ -28,6 +28,6 @@ jobs:
           "sudo -u ec2-user docker compose up -d --build",
           "cd nginx",
           "sudo -u ec2-user docker build -t nginx .",
-          "sudo -u ec2-user docker run -d -p 80:80 -p 443:443 -v /etc/nginx:/etc/nginx -v /etc/letsencrypt:/etc/letsencrypt"
+          "sudo -u ec2-user docker run -d -p 80:80 -p 443:443 -v /etc/nginx:/etc/nginx -v /etc/letsencrypt:/etc/letsencrypt nginx"
           ]'
 
