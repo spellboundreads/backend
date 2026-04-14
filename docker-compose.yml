@@ -31,4 +31,4 @@ services:
       - spellbound_data:/var/lib/postgresql/data
 
 volumes:
-  spellbound_data
+  spellbound_data:
