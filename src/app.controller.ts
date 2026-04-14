@@ -14,7 +14,7 @@ export class AppController {
 
   @Get('hello')
   getHello() {
-    return: {
+    return {
       "message": "Hello World!"
     };
   }
