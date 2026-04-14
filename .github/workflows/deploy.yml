@@ -23,8 +23,8 @@ jobs:
           --document-name "AWS-RunShellScript" \
           --parameters commands='[
           "cd /home/ec2-user/backend",
-          "git pull origin main",
-          "docker compose down",
-          "docker compose up -d --build"
+          "sudo -u ec2-user git pull origin main",
+          "sudo -u ec2-user docker compose down",
+          "sudo -u ec2-user docker compose up -d --build"
           ]'
 
