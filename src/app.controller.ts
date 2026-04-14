@@ -11,4 +11,11 @@ export class AppController {
       status: 'ok'
     };
   }
+
+  @Get('hello')
+  getHello() {
+    return: {
+      "message": "Hello World!"
+    }
+  }
 }
